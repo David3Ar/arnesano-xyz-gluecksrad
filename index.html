@@ -1,0 +1,2232 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glücksrad</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%231a1a2e' stroke-width='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='30' stroke='%231a1a2e' stroke-width='1.5'/%3E%3Cline x1='2' y1='16' x2='30' y2='16' stroke='%231a1a2e' stroke-width='1.5'/%3E%3Cline x1='5.1' y1='5.1' x2='26.9' y2='26.9' stroke='%231a1a2e' stroke-width='1.5'/%3E%3Cline x1='26.9' y1='5.1' x2='5.1' y2='26.9' stroke='%231a1a2e' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%231a1a2e'/%3E%3Cpolygon points='16,0 13.5,5 18.5,5' fill='%231a1a2e'/%3E%3C/svg%3E">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: hsl(0 0% 100%);
+    --surface: hsl(0 0% 100%);
+    --muted: hsl(240 4.8% 95.9%);
+    --muted-hover: hsl(240 5% 92%);
+    --border: hsl(240 5.9% 90%);
+    --text: hsl(240 10% 3.9%);
+    --text-secondary: hsl(240 3.8% 46.1%);
+    --accent: hsl(28 32% 38%);
+    --accent-hover: hsl(28 32% 30%);
+    --accent-foreground: hsl(36 33% 97%);
+    --ring: hsl(28 32% 38%);
+    --danger: hsl(0 72.22% 50.59%);
+    --danger-hover: hsl(0 72.22% 45%);
+    --success: hsl(142.1 76.2% 36.3%);
+    --success-hover: hsl(142.1 70.6% 30%);
+    --radius: 0.5rem;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+    --shadow-lg: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+  }
+
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px 0;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.5;
+  }
+
+  :focus { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 880px;
+    display: flex;
+    gap: 40px;
+    flex: 1;
+  }
+
+  /* --- Left Panel: Inputs --- */
+  .panel {
+    flex: 0 0 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    color: var(--text);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  input, textarea {
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    padding: 0 12px;
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    font-family: inherit;
+  }
+
+  input::placeholder, textarea::placeholder { color: var(--text-secondary); }
+
+  input:focus-visible, textarea:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px hsl(28 32% 38% / .15);
+  }
+
+  .input-name { flex: 1; }
+  .input-weight { width: 72px; text-align: center; }
+
+  .btn {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: calc(var(--radius) - 2px);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s, opacity .15s, box-shadow .15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  .btn-ghost {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .btn-ghost:hover { background: var(--muted); }
+
+  .btn-icon {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: calc(var(--radius) - 2px);
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background .15s, color .15s;
+  }
+
+  .btn-icon:hover { background: var(--muted); color: var(--text); }
+
+  .entries {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  .entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 14px;
+    animation: fadeIn .2s ease;
+    transition: border-color .15s, background .15s;
+  }
+
+  .entry:hover { border-color: hsl(240 5.9% 80%); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .entry .name { flex: 1; font-weight: 500; cursor: default; }
+  .entry .weight { color: var(--text-secondary); font-size: 12px; min-width: 32px; text-align: right; cursor: default; }
+
+  .entry .edit-input {
+    height: 26px;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 0 6px;
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+  }
+
+  .entry .edit-name { flex: 1; min-width: 0; }
+  .entry .edit-weight { width: 48px; text-align: center; }
+
+  .hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+  }
+
+  .hint kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  /* --- Right Panel: Wheel --- */
+  .wheel-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .wheel-wrapper {
+    position: relative;
+    width: 400px;
+    padding-top: 20px;
+  }
+
+  .wheel-container {
+    position: relative;
+    width: 400px;
+    height: 400px;
+  }
+
+  canvas#canvas {
+    display: block;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    box-shadow: var(--shadow-md), 0 0 0 1px var(--border);
+  }
+
+  .pointer {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 28px solid var(--accent);
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.15));
+    z-index: 2;
+  }
+
+  .spin-area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .spin-btn {
+    width: 200px;
+    height: 44px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .spin-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+
+  .spin-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: var(--text);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s, transform .15s;
+  }
+
+  .spin-tooltip.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .spin-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--text);
+  }
+
+  .spin-btn.charging {
+    background: var(--accent-hover);
+  }
+
+  .spin-btn .fill {
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 100%;
+    height: 0%;
+    background: rgba(255,255,255,.2);
+    transition: height .05s linear;
+    pointer-events: none;
+  }
+
+  .spin-btn span {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* --- Winner Overlay --- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+  }
+
+  .overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .winner-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) + 4px);
+    padding: 48px 64px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    transform: scale(.85) translateY(20px);
+    transition: transform .4s cubic-bezier(.175,.885,.32,1.275);
+    max-width: 440px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .overlay.visible .winner-card {
+    transform: scale(1) translateY(0);
+  }
+
+  .winner-card .trophy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: hsl(28 32% 38% / .1);
+    color: var(--accent);
+  }
+
+  .winner-card .trophy svg {
+    width: 36px;
+    height: 36px;
+    stroke-width: 1.75;
+  }
+
+  .winner-card .label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: 8px;
+  }
+
+  .winner-card .name {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -.03em;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 28px;
+    word-break: break-word;
+  }
+
+  .winner-card .close-btn {
+    height: 40px;
+    padding: 0 28px;
+    font-size: 14px;
+  }
+
+  /* Confetti canvas */
+  .confetti-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 101;
+    pointer-events: none;
+  }
+
+  .result-inline {
+    font-size: 14px;
+    color: var(--text-secondary);
+    min-height: 20px;
+    text-align: center;
+  }
+
+  .empty-wheel {
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    border: 2px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  /* --- Config Bar --- */
+  .config-bar {
+    width: 100%;
+    max-width: 880px;
+    margin-top: 48px;
+    border-top: 1px solid var(--border);
+    padding: 24px 0 32px;
+  }
+
+  .config-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .config-header h2 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .config-header .chevron {
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: transform .2s;
+  }
+
+  .config-header.open .chevron {
+    transform: rotate(180deg);
+  }
+
+  .config-body {
+    display: none;
+  }
+
+  .config-body.open {
+    display: block;
+  }
+
+  .groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .group-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    position: relative;
+  }
+
+  .group-card:hover {
+    border-color: hsl(240 5.9% 70%);
+    background: var(--muted);
+  }
+
+  .group-card.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+    background: var(--surface);
+  }
+
+  .group-card .gc-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .group-card .gc-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .group-card .gc-count {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .group-card .gc-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+
+  .group-card:hover .gc-actions {
+    opacity: 1;
+  }
+
+  /* Group editor modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+
+  .modal-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) + 2px);
+    padding: 24px;
+    width: 460px;
+    max-width: 95vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .modal h3 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    color: var(--text);
+  }
+
+  .modal label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .modal input, .modal textarea {
+    width: 100%;
+  }
+
+  .modal textarea {
+    min-height: 60px;
+    height: auto;
+    padding: 8px 12px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+
+  .modal-members {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .modal-member {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .modal-member input:first-child { flex: 1; }
+  .modal-member input:nth-child(2) { width: 64px; text-align: center; }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: hsl(0 0% 98%);
+  }
+  .btn-danger:hover { background: var(--danger-hover); }
+
+  .empty-groups {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+    padding: 32px 24px;
+    border: 1px dashed var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    margin-bottom: 16px;
+    background: var(--muted);
+  }
+
+  /* --- JSON Modal --- */
+  .modal-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .import-mode-tabs {
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background-color: var(--muted);
+  }
+
+  .mode-tab {
+    appearance: none;
+    height: 30px;
+    border: 0;
+    border-radius: calc(var(--radius) - 3px);
+    padding: 0 12px;
+    background-color: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    transition: background .15s, color .15s, box-shadow .15s;
+  }
+
+  .mode-tab:hover {
+    color: var(--text);
+  }
+
+  .mode-tab.active {
+    background-color: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mode-tab.aud.active {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .json-options {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: -6px;
+  }
+
+  .json-options.visible {
+    display: flex;
+  }
+
+  .aud-import-fields {
+    display: none;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background-color: var(--muted);
+  }
+
+  .aud-import-fields.visible {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .aud-group-field input {
+    background-color: var(--surface);
+  }
+
+  .json-options input {
+    width: auto;
+    height: auto;
+  }
+
+  .json-area-label {
+    margin-bottom: -10px;
+  }
+
+  .json-textarea {
+    width: 100%;
+    min-height: 220px;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    background: var(--muted);
+    color: var(--text);
+    outline: none;
+    resize: vertical;
+    transition: border-color .15s, box-shadow .15s;
+    tab-size: 2;
+  }
+
+  .json-textarea:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px hsl(28 32% 38% / .15);
+  }
+  .json-textarea.invalid { border-color: var(--danger); box-shadow: 0 0 0 3px hsl(0 72% 51% / .1); }
+  .json-textarea.valid { border-color: var(--success); box-shadow: 0 0 0 3px hsl(142 76% 36% / .1); }
+
+  .json-status {
+    font-size: 12px;
+    min-height: 18px;
+    margin-top: 4px;
+  }
+
+  .json-status.error { color: var(--danger); }
+  .json-status.ok { color: var(--success); }
+
+  .json-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: hsl(0 0% 98%);
+  }
+  .btn-success:not(:disabled):hover { background: var(--success-hover); }
+
+  .btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  /* --- Site Footer --- */
+  .site-footer {
+    width: 100%;
+    max-width: 880px;
+    margin-top: auto;
+    padding: 24px 0 32px;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .site-footer details {
+    margin-top: 6px;
+  }
+
+  .site-footer summary {
+    cursor: pointer;
+    user-select: none;
+    color: var(--text);
+    font-weight: 500;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+  }
+
+  .site-footer summary::-webkit-details-marker { display: none; }
+
+  .site-footer summary::before {
+    content: '▸';
+    font-size: 10px;
+    color: var(--text-secondary);
+    transition: transform .15s;
+    display: inline-block;
+  }
+
+  .site-footer details[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  .site-footer .legal-body {
+    margin-top: 8px;
+    padding: 12px 14px;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    color: var(--text-secondary);
+  }
+
+  .site-footer .legal-body strong { color: var(--text); font-weight: 600; }
+  .site-footer .legal-body p + p { margin-top: 6px; }
+  .site-footer .legal-body a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
+
+  .language-toggle {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 90;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--surface);
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-md);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: 700 12px/1 inherit;
+    cursor: pointer;
+  }
+
+  .language-toggle span {
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .language-toggle .active {
+    color: var(--text);
+  }
+
+  .language-toggle .divider {
+    width: 1px;
+    height: 14px;
+    min-width: 1px;
+    background: var(--border);
+  }
+
+  .footer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-meta .legal-links {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 720px) {
+    .app { flex-direction: column; align-items: center; }
+    .panel { flex: none; width: 100%; max-width: 400px; }
+    .wheel-wrapper { width: 300px; }
+    .wheel-container { width: 300px; height: 300px; }
+    canvas#canvas { width: 300px; height: 300px; }
+    .empty-wheel { width: 300px; height: 300px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="language-toggle" id="languageToggle" type="button" title="Sprache wechseln">
+  <span id="langDe">DE</span>
+  <span class="divider" aria-hidden="true"></span>
+  <span id="langEn">EN</span>
+</button>
+
+<div class="app">
+  <div class="panel">
+    <h1 id="participantsTitle">Teilnehmer</h1>
+    <form class="input-row" id="addForm">
+      <input class="input-name" id="nameInput" type="text" placeholder="Name" required autocomplete="off">
+      <input class="input-weight" id="weightInput" type="number" min="0" value="0" placeholder="Vortr.">
+      <button type="submit" class="btn btn-primary">+</button>
+    </form>
+    <div class="entries" id="entries"></div>
+    <div class="hint" id="spinHint">
+      Halte <kbd>Leertaste</kbd> oder den Spin-Button gedrückt &mdash; je länger, desto stärker der Spin.
+    </div>
+  </div>
+
+  <div class="wheel-area">
+    <div class="wheel-wrapper">
+      <div class="pointer" style="display:none" id="pointer"></div>
+      <div class="wheel-container" id="wheelContainer">
+        <div class="empty-wheel" id="emptyWheel">Teilnehmer hinzufügen</div>
+        <canvas id="canvas" width="800" height="800" style="display:none"></canvas>
+      </div>
+    </div>
+    <div class="spin-area">
+      <div class="spin-tooltip" id="spinTooltip">Mindestens 2 Teilnehmer nötig</div>
+      <button class="btn btn-primary spin-btn" id="spinBtn" disabled>
+        <span class="fill" id="fill"></span>
+        <span id="spinLabel">Spin</span>
+      </button>
+    </div>
+    <div class="result-inline" id="resultInline"></div>
+  </div>
+</div>
+
+<!-- Config Bar -->
+<div class="config-bar">
+  <div class="config-header" id="configToggle">
+    <h2><span id="savedGroupsTitle">Gespeicherte Gruppen</span> <span class="chevron">&#9660;</span></h2>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-ghost" id="jsonModalBtn" style="height:32px;font-size:12px;padding:0 12px;">JSON Import / Export</button>
+      <button class="btn btn-primary" id="newGroupBtn" style="height:32px;font-size:12px;padding:0 12px;">+ Neue Gruppe</button>
+    </div>
+  </div>
+  <div class="config-body" id="configBody">
+    <div id="groupsContainer"></div>
+  </div>
+</div>
+
+<!-- Group Editor Modal -->
+<div class="modal-overlay" id="groupModal">
+  <div class="modal">
+    <h3 id="modalTitle">Neue Gruppe</h3>
+    <div>
+      <label id="grpNameLabel">Gruppenname</label>
+      <input type="text" id="grpName" placeholder="z.B. Team Alpha" autocomplete="off">
+    </div>
+    <div>
+      <label id="grpDescLabel">Beschreibung</label>
+      <textarea id="grpDesc" placeholder="Optionale Beschreibung"></textarea>
+    </div>
+    <div>
+      <label id="grpMembersLabel">Teilnehmer</label>
+      <div class="modal-members" id="grpMembers"></div>
+      <button class="btn btn-ghost" id="addMemberBtn" style="margin-top:8px;height:30px;font-size:12px;">+ Teilnehmer</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modalCancel">Abbrechen</button>
+      <button class="btn btn-primary" id="modalSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- JSON Modal -->
+<div class="modal-overlay" id="jsonModal">
+  <div class="modal" style="width:540px;">
+    <div class="modal-title-row">
+      <h3 id="jsonModalTitle">JSON Gruppen-Editor</h3>
+      <div class="import-mode-tabs" aria-label="Import-Modus">
+        <button type="button" class="mode-tab active" id="jsonModeBtn" aria-pressed="true">Gruppen JSON</button>
+        <button type="button" class="mode-tab aud" id="audImportToggle" aria-pressed="false">AUD Import</button>
+      </div>
+    </div>
+    <div class="aud-import-fields" id="audImportFields">
+      <div class="aud-group-field">
+        <label id="audGroupNameLabel">Groupname</label>
+        <input type="text" id="audGroupName" placeholder="z.B. g4" autocomplete="off" required>
+      </div>
+      <label class="json-options visible" id="audImportOptions">
+        <input type="checkbox" id="audUsePresented" checked>
+        <span id="audPresentedLabel">Presented-Wert aus AUD-Daten verwenden</span>
+      </label>
+    </div>
+    <label class="json-area-label" id="jsonAreaLabel" for="jsonArea">Gruppen JSON</label>
+    <textarea class="json-textarea" id="jsonArea"></textarea>
+    <div class="json-status" id="jsonStatus"></div>
+    <div class="json-actions">
+      <button class="btn btn-ghost" id="jsonUploadBtn">Datei laden</button>
+      <input type="file" id="jsonFileInput" accept=".json" style="display:none">
+      <button class="btn btn-ghost json-only-action" id="jsonCopyBtn">Kopieren</button>
+      <button class="btn btn-ghost json-only-action" id="jsonDownloadBtn">Herunterladen</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-success" id="jsonApplyBtn" disabled>Anwenden</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="jsonModalClose">Schliessen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Winner Overlay -->
+<div class="overlay" id="overlay">
+  <div class="winner-card">
+    <span class="trophy" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M15.477 13.89 17 22l-5-3-5 3 1.523-8.11"/></svg>
+    </span>
+    <div class="label" id="winnerLabel">Gewinner</div>
+    <div class="name" id="winnerName"></div>
+    <button class="btn btn-primary close-btn" id="closeOverlay">Schließen</button>
+  </div>
+</div>
+<canvas class="confetti-canvas" id="confettiCanvas"></canvas>
+
+<!-- Footer: Impressum & Datenschutz -->
+<footer class="site-footer">
+  <div class="footer-meta">
+    <div>&copy; <span id="footerYear"></span> Davide Arnesano &middot; <span id="footerAppName">Glücksrad</span></div>
+    <div class="legal-links">
+      <a id="footerContact" href="mailto:impressum@arnesano.xyz" style="color:inherit;text-decoration:none;">Kontakt</a>
+    </div>
+  </div>
+
+  <details>
+    <summary id="legalSummary">Impressum</summary>
+    <div class="legal-body">
+      <p><strong>Angaben gemäß § 5 DDG</strong></p>
+      <p>Davide Arnesano<br>
+      E-Mail: <a href="mailto:impressum@arnesano.xyz">impressum@arnesano.xyz</a></p>
+      <p>Es handelt sich um ein privates, nicht-kommerzielles Hobbyprojekt. Eine ladungsfähige Anschrift wird auf Anfrage per E-Mail mitgeteilt.</p>
+      <p><strong>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</strong> Davide Arnesano, Kontakt wie oben.</p>
+      <p><strong>Haftung für Inhalte:</strong> Die Inhalte dieser Seite werden mit Sorgfalt erstellt, eine Gewähr für Richtigkeit, Vollständigkeit und Aktualität wird nicht übernommen.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary id="privacySummary">Datenschutzerklärung</summary>
+    <div class="legal-body">
+      <p><strong>Verarbeitete Daten in der App.</strong> Das Glücksrad verarbeitet keine personenbezogenen Daten auf einem Server. Alle Eingaben (Teilnehmernamen, Gruppen, Konfigurationen) werden ausschließlich lokal im <code>localStorage</code> deines Browsers gespeichert und verlassen dein Gerät nicht. Du kannst sie jederzeit über die Browser-Einstellungen löschen.</p>
+      <p><strong>Cookies / Tracking.</strong> Diese Seite setzt keine Cookies, lädt keine externen Schriften (Google Fonts o.ä.), keine Analyse-Tools und keine externen Skripte.</p>
+      <p><strong>Hosting.</strong> Die Seite wird bei Cloudflare gehostet. Beim Aufruf werden technisch erforderliche Daten (insb. IP-Adresse, Datum/Uhrzeit, User-Agent) durch den Hoster verarbeitet, um die Seite ausliefern und die Sicherheit gewährleisten zu können (Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO). Weitere Informationen: <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy Policy</a>.</p>
+      <p><strong>Deine Rechte.</strong> Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung sowie Widerspruch und Datenübertragbarkeit. Anfragen bitte an <a href="mailto:impressum@arnesano.xyz">impressum@arnesano.xyz</a>.</p>
+    </div>
+  </details>
+</footer>
+
+<script>
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+</script>
+
+<script>
+(() => {
+  const COLORS = [
+    '#7a6580','#a88e5f','#7d8a6b','#5d7d7a',
+    '#7a8aa3','#967d9a','#a87863','#b8a075',
+    '#6b8c6f','#9c7766','#8a8aa3','#a17a8c',
+    '#7a9180','#9a7575','#6e7d8a','#a8956b'
+  ];
+
+  const I18N = {
+    de: {
+      pageTitle: 'Glücksrad',
+      switchLanguage: 'Sprache wechseln',
+      participants: 'Teilnehmer',
+      namePlaceholder: 'Name',
+      weightPlaceholder: 'Vortr.',
+      spinHint: 'Halte <kbd>Leertaste</kbd> oder den Spin-Button gedrückt &mdash; je länger, desto stärker der Spin.',
+      addParticipants: 'Teilnehmer hinzufügen',
+      minParticipants: 'Mindestens 2 Teilnehmer nötig',
+      spin: 'Spin',
+      charging: 'Halten…',
+      savedGroups: 'Gespeicherte Gruppen',
+      jsonImportExport: 'JSON Import / Export',
+      newGroup: '+ Neue Gruppe',
+      newGroupTitle: 'Neue Gruppe',
+      editGroupTitle: 'Gruppe bearbeiten',
+      groupName: 'Gruppenname',
+      description: 'Beschreibung',
+      optionalDescription: 'Optionale Beschreibung',
+      addParticipant: '+ Teilnehmer',
+      cancel: 'Abbrechen',
+      save: 'Speichern',
+      groupJsonEditor: 'JSON Gruppen-Editor',
+      groupJson: 'Gruppen JSON',
+      audImport: 'AUD Import',
+      audJson: 'AUD JSON',
+      audJsonPlaceholder: 'AUD JSON-Array einfuegen...',
+      groupJsonPlaceholder: 'Glücksrad-Gruppen JSON einfuegen...',
+      audPresented: 'Presented-Wert aus AUD-Daten verwenden',
+      loadFile: 'Datei laden',
+      copy: 'Kopieren',
+      copied: 'Kopiert!',
+      download: 'Herunterladen',
+      apply: 'Anwenden',
+      import: 'Importieren',
+      close: 'Schließen',
+      closePlain: 'Schliessen',
+      winner: 'Gewinner',
+      winnerInline: name => 'Gewinner: ' + name,
+      emptyGroups: 'Noch keine Gruppen gespeichert',
+      remove: 'Entfernen',
+      edit: 'Bearbeiten',
+      delete: 'Löschen',
+      participantCount: count => count + ' Teilnehmer',
+      deleteGroupConfirm: name => 'Gruppe "' + name + '" wirklich löschen?',
+      audEmpty: 'AUD Import enthaelt keine aktiven Teilnehmer',
+      audArrayRequired: 'AUD JSON muss ein Array sein',
+      groupNameRequired: 'Groupname ist ein Pflichtfeld',
+      audNameRequired: row => 'AUD Zeile ' + row + ' braucht _firstname oder _lastname',
+      jsonArrayRequired: 'JSON muss ein Array sein',
+      groupNameFieldRequired: 'Jede Gruppe braucht ein "name"-Feld',
+      groupMembersRequired: 'Jede Gruppe braucht ein "members"-Array',
+      groupStatus: (groups, members) => groups + ' Gruppe(n), ' + members + ' Teilnehmer',
+      audStatus: (name, members) => name + ': ' + members + ' Teilnehmer',
+      audDescription: groups => groups.length > 0 ? 'Import aus AUD: ' + groups.join(', ') : 'Import aus AUD',
+      contact: 'Kontakt',
+      legalNotice: 'Impressum',
+      privacyPolicy: 'Datenschutzerklärung',
+    },
+    en: {
+      pageTitle: 'Wheel of Names',
+      switchLanguage: 'Switch language',
+      participants: 'Participants',
+      namePlaceholder: 'Name',
+      weightPlaceholder: 'Pres.',
+      spinHint: 'Hold <kbd>Space</kbd> or the spin button &mdash; the longer you hold, the stronger the spin.',
+      addParticipants: 'Add participants',
+      minParticipants: 'At least 2 participants needed',
+      spin: 'Spin',
+      charging: 'Holding…',
+      savedGroups: 'Saved groups',
+      jsonImportExport: 'JSON Import / Export',
+      newGroup: '+ New group',
+      newGroupTitle: 'New group',
+      editGroupTitle: 'Edit group',
+      groupName: 'Group name',
+      description: 'Description',
+      optionalDescription: 'Optional description',
+      addParticipant: '+ Participant',
+      cancel: 'Cancel',
+      save: 'Save',
+      groupJsonEditor: 'JSON Group Editor',
+      groupJson: 'Groups JSON',
+      audImport: 'AUD Import',
+      audJson: 'AUD JSON',
+      audJsonPlaceholder: 'Paste AUD JSON array...',
+      groupJsonPlaceholder: 'Paste wheel groups JSON...',
+      audPresented: 'Use presented value from AUD data',
+      loadFile: 'Load file',
+      copy: 'Copy',
+      copied: 'Copied!',
+      download: 'Download',
+      apply: 'Apply',
+      import: 'Import',
+      close: 'Close',
+      closePlain: 'Close',
+      winner: 'Winner',
+      winnerInline: name => 'Winner: ' + name,
+      emptyGroups: 'No saved groups yet',
+      remove: 'Remove',
+      edit: 'Edit',
+      delete: 'Delete',
+      participantCount: count => count + ' participant' + (count === 1 ? '' : 's'),
+      deleteGroupConfirm: name => 'Delete group "' + name + '"?',
+      audEmpty: 'AUD import contains no active participants',
+      audArrayRequired: 'AUD JSON must be an array',
+      groupNameRequired: 'Group name is required',
+      audNameRequired: row => 'AUD row ' + row + ' needs _firstname or _lastname',
+      jsonArrayRequired: 'JSON must be an array',
+      groupNameFieldRequired: 'Every group needs a "name" field',
+      groupMembersRequired: 'Every group needs a "members" array',
+      groupStatus: (groups, members) => groups + ' group' + (groups === 1 ? '' : 's') + ', ' + members + ' participant' + (members === 1 ? '' : 's'),
+      audStatus: (name, members) => name + ': ' + members + ' participant' + (members === 1 ? '' : 's'),
+      audDescription: groups => groups.length > 0 ? 'Imported from AUD: ' + groups.join(', ') : 'Imported from AUD',
+      contact: 'Contact',
+      legalNotice: 'Legal notice',
+      privacyPolicy: 'Privacy policy',
+    },
+  };
+
+  const LANG_STORAGE_KEY = 'gluecksrad_language';
+  let currentLang = localStorage.getItem(LANG_STORAGE_KEY) || 'de';
+  if (!I18N[currentLang]) currentLang = 'de';
+
+  function t(key, ...args) {
+    const value = (I18N[currentLang] && I18N[currentLang][key]) || I18N.de[key] || key;
+    return typeof value === 'function' ? value(...args) : value;
+  }
+
+  let entries = [];
+  let rotation = 0;
+  let spinning = false;
+  let animId = null;
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const entriesEl = document.getElementById('entries');
+  const spinBtn = document.getElementById('spinBtn');
+  const spinLabel = document.getElementById('spinLabel');
+  const fillEl = document.getElementById('fill');
+  const spinTooltip = document.getElementById('spinTooltip');
+  const resultInline = document.getElementById('resultInline');
+  const overlay = document.getElementById('overlay');
+  const winnerNameEl = document.getElementById('winnerName');
+  const closeOverlay = document.getElementById('closeOverlay');
+  const confettiCanvas = document.getElementById('confettiCanvas');
+  const confettiCtx = confettiCanvas.getContext('2d');
+  const emptyWheel = document.getElementById('emptyWheel');
+  const pointer = document.getElementById('pointer');
+  const nameInput = document.getElementById('nameInput');
+  const weightInput = document.getElementById('weightInput');
+  const addForm = document.getElementById('addForm');
+  const languageToggle = document.getElementById('languageToggle');
+  const langDe = document.getElementById('langDe');
+  const langEn = document.getElementById('langEn');
+  const footerAppName = document.getElementById('footerAppName');
+  const footerContact = document.getElementById('footerContact');
+  const legalSummary = document.getElementById('legalSummary');
+  const privacySummary = document.getElementById('privacySummary');
+  const participantsTitle = document.getElementById('participantsTitle');
+  const spinHint = document.getElementById('spinHint');
+  const savedGroupsTitle = document.getElementById('savedGroupsTitle');
+  const winnerLabel = document.getElementById('winnerLabel');
+
+  // --- Entry Management ---
+  addForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = nameInput.value.trim();
+    const weight = Math.max(0, parseInt(weightInput.value) || 0);
+    if (!name) return;
+    entries.push({ name, weight });
+    nameInput.value = '';
+    weightInput.value = '0';
+    nameInput.focus();
+    render();
+  });
+
+  function removeEntry(i) {
+    entries.splice(i, 1);
+    render();
+  }
+
+  function render() {
+    // Entries list
+    entriesEl.innerHTML = entries.map((e, i) => `
+      <div class="entry" data-idx="${i}">
+        <span class="name">${esc(e.name)}</span>
+        <span class="weight">${e.weight}&times;</span>
+        <button class="btn-icon" onclick="window._remove(${i})" title="${esc(t('remove'))}">&times;</button>
+      </div>
+    `).join('');
+
+    // Doppelklick zum Bearbeiten
+    entriesEl.querySelectorAll('.entry').forEach(el => {
+      el.addEventListener('dblclick', () => startEditEntry(parseInt(el.dataset.idx)));
+    });
+
+    const hasEntries = entries.length >= 2;
+    spinBtn.disabled = !hasEntries || spinning;
+
+    if (entries.length > 0) {
+      canvas.style.display = 'block';
+      pointer.style.display = 'block';
+      emptyWheel.style.display = 'none';
+      drawWheel();
+    } else {
+      canvas.style.display = 'none';
+      pointer.style.display = 'none';
+      emptyWheel.style.display = 'flex';
+    }
+  }
+
+  window._remove = removeEntry;
+
+  function startEditEntry(idx) {
+    const entry = entries[idx];
+    const el = entriesEl.querySelectorAll('.entry')[idx];
+    if (!el || el.querySelector('.edit-input')) return;
+
+    const nameSpan = el.querySelector('.name');
+    const weightSpan = el.querySelector('.weight');
+
+    const nameInput = document.createElement('input');
+    nameInput.className = 'edit-input edit-name';
+    nameInput.value = entry.name;
+
+    const weightInput = document.createElement('input');
+    weightInput.className = 'edit-input edit-weight';
+    weightInput.type = 'number';
+    weightInput.min = '0';
+    weightInput.value = entry.weight;
+
+    nameSpan.replaceWith(nameInput);
+    weightSpan.replaceWith(weightInput);
+    nameInput.focus();
+    nameInput.select();
+
+    function commit() {
+      const newName = nameInput.value.trim();
+      if (newName) entries[idx].name = newName;
+      entries[idx].weight = Math.max(0, parseInt(weightInput.value) || 0);
+      render();
+    }
+
+    function onKey(e) {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { e.preventDefault(); render(); }
+    }
+
+    nameInput.addEventListener('keydown', onKey);
+    weightInput.addEventListener('keydown', onKey);
+    function commitAfterFocusSettles() {
+      setTimeout(() => {
+        if (!el.querySelector('.edit-input:focus')) commit();
+      }, 0);
+    }
+
+    nameInput.addEventListener('blur', commitAfterFocusSettles);
+    weightInput.addEventListener('blur', commitAfterFocusSettles);
+  }
+
+  // --- Wheel Drawing ---
+  // Weight is reciprocal: lower number = bigger slice (more chance)
+  function effectiveWeight(entry) {
+    return 1 / (entry.weight + 1);
+  }
+
+  function totalWeight() {
+    return entries.reduce((s, e) => s + effectiveWeight(e), 0);
+  }
+
+  function drawWheel() {
+    const cx = 400, cy = 400, r = 396;
+    ctx.clearRect(0, 0, 800, 800);
+    const total = totalWeight();
+    let angle = rotation;
+
+    entries.forEach((entry, i) => {
+      const slice = (effectiveWeight(entry) / total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, angle, angle + slice);
+      ctx.closePath();
+      ctx.fillStyle = COLORS[i % COLORS.length];
+      ctx.fill();
+
+      // Label
+      const mid = angle + slice / 2;
+      const labelR = r * 0.65;
+      const tx = cx + Math.cos(mid) * labelR;
+      const ty = cy + Math.sin(mid) * labelR;
+
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.rotate(mid);
+      ctx.fillStyle = '#fff';
+      ctx.font = '600 24px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const maxLen = Math.max(6, Math.floor(slice * r / 28));
+      let label = entry.name;
+      if (label.length > maxLen) label = label.slice(0, maxLen - 1) + '\u2026';
+      ctx.fillText(label, 0, 0);
+      ctx.restore();
+
+      angle += slice;
+    });
+
+    // Center cap
+    ctx.beginPath();
+    ctx.arc(cx, cy, 30, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.08)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // --- Sound System (Web Audio API) ---
+  let audioCtx = null;
+  function getAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function playNote(ctx, freq, start, duration, gain = 0.12, type = 'sine') {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(gain, start);
+    g.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + duration);
+  }
+
+  // Ice cream truck / music box melody
+  function playIceCreamTruck() {
+    const ctx = getAudio();
+    const t = ctx.currentTime;
+    // Classic ice cream truck jingle (Do Your Ears Hang Low / Turkey in the Straw style)
+    const melody = [
+      [523, 0.18], [587, 0.18], [659, 0.18], [587, 0.18],
+      [523, 0.36], [523, 0.36],
+      [587, 0.18], [659, 0.18], [698, 0.18], [659, 0.18],
+      [587, 0.54],
+      [659, 0.18], [698, 0.18], [784, 0.36],
+      [698, 0.18], [659, 0.18], [587, 0.36],
+      [523, 0.18], [587, 0.18], [659, 0.18], [587, 0.18],
+      [523, 0.72],
+    ];
+    let offset = 0;
+    for (const [freq, dur] of melody) {
+      playNote(ctx, freq, t + offset, dur + 0.05, 0.1, 'triangle');
+      // Subtle octave shimmer
+      playNote(ctx, freq * 2, t + offset, dur + 0.05, 0.03, 'sine');
+      offset += dur;
+    }
+  }
+
+  // Winner fanfare
+  function playFanfare() {
+    const ctx = getAudio();
+    const t = ctx.currentTime;
+    const notes = [
+      [523, 0.15], [659, 0.15], [784, 0.15], [1047, 0.45],
+      [784, 0.15], [1047, 0.6],
+    ];
+    let offset = 0;
+    for (const [freq, dur] of notes) {
+      playNote(ctx, freq, t + offset, dur + 0.1, 0.14, 'triangle');
+      playNote(ctx, freq * 0.5, t + offset, dur + 0.1, 0.06, 'sine');
+      playNote(ctx, freq * 1.5, t + offset, dur + 0.08, 0.04, 'sine');
+      offset += dur;
+    }
+  }
+
+  // Tick sound while spinning — volume scales with speed
+  let currentSpeed = 0;
+  let tickInterval = null;
+
+  function startTickSound() {
+    stopTickSound();
+    tickInterval = setInterval(() => {
+      if (!spinning) { stopTickSound(); return; }
+      const vol = Math.min(0.06, currentSpeed * 0.3);
+      if (vol < 0.002) return;
+      const ctx = getAudio();
+      const t = ctx.currentTime;
+      playNote(ctx, 1200 + Math.random() * 400, t, 0.03, vol, 'sine');
+    }, 80);
+  }
+
+  function stopTickSound() {
+    if (tickInterval) { clearInterval(tickInterval); tickInterval = null; }
+  }
+
+  // --- Spin Mechanics ---
+  let chargeStart = null;
+
+  function startCharge() {
+    if (spinning || entries.length < 2) return;
+    chargeStart = Date.now();
+    spinBtn.classList.add('charging');
+    spinLabel.textContent = t('charging');
+    resultInline.textContent = '';
+    chargeLoop();
+  }
+
+  function chargeLoop() {
+    if (!chargeStart) return;
+    const elapsed = Date.now() - chargeStart;
+    const pct = Math.min(elapsed / 2000, 1);
+    fillEl.style.height = (pct * 100) + '%';
+    if (pct < 1) requestAnimationFrame(chargeLoop);
+  }
+
+  function endCharge() {
+    if (!chargeStart || spinning) return;
+    const elapsed = Date.now() - chargeStart;
+    chargeStart = null;
+    spinBtn.classList.remove('charging');
+    fillEl.style.height = '0%';
+    spinLabel.textContent = t('spin');
+
+    const power = Math.min(elapsed / 2000, 1);
+    // Random offset so same hold-time gives different results
+    const randomBoost = (Math.random() - 0.5) * 0.2;
+    const speed = 0.15 + power * 0.55 + randomBoost;
+    // Random starting offset to avoid positional bias
+    rotation += Math.random() * Math.PI * 2;
+    spin(Math.max(0.15, speed));
+  }
+
+  function spin(initialSpeed) {
+    spinning = true;
+    spinBtn.disabled = true;
+    playIceCreamTruck();
+    startTickSound();
+    let speed = initialSpeed;
+    const friction = 0.988 + Math.random() * 0.008;
+    // Random micro-bumps during spin
+    const bumpChance = 0.02 + Math.random() * 0.03;
+    const bumpStrength = 0.003 + Math.random() * 0.005;
+
+    function tick() {
+      // Occasional random speed perturbations
+      if (Math.random() < bumpChance && speed > 0.01) {
+        speed += (Math.random() - 0.4) * bumpStrength;
+      }
+      rotation += speed;
+      speed *= friction;
+      // Accelerate slowdown in the final phase with random variance
+      if (speed < 0.03) speed *= 0.975 + Math.random() * 0.01;
+      if (speed < 0.01) speed *= 0.955 + Math.random() * 0.01;
+      currentSpeed = speed;
+      drawWheel();
+
+      if (speed < 0.001) {
+        spinning = false;
+        stopTickSound();
+        render();
+        showWinner();
+        return;
+      }
+      animId = requestAnimationFrame(tick);
+    }
+    animId = requestAnimationFrame(tick);
+  }
+
+  function getWinner() {
+    const total = totalWeight();
+    const pointerAngle = (-Math.PI / 2 - rotation) % (Math.PI * 2);
+    const norm = ((pointerAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    let cumulative = 0;
+    for (const entry of entries) {
+      cumulative += (effectiveWeight(entry) / total) * Math.PI * 2;
+      if (norm < cumulative) return entry;
+    }
+    return entries[entries.length - 1];
+  }
+
+  function showWinner() {
+    const winner = getWinner();
+    resultInline.textContent = t('winnerInline', winner.name);
+    winnerNameEl.textContent = winner.name;
+    overlay.classList.add('visible');
+    playFanfare();
+    launchConfetti();
+  }
+
+  function hideOverlay() {
+    overlay.classList.remove('visible');
+    stopConfetti();
+  }
+
+  closeOverlay.addEventListener('click', hideOverlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) hideOverlay(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') hideOverlay(); });
+
+  // --- Confetti ---
+  let confettiPieces = [];
+  let confettiAnim = null;
+
+  function launchConfetti() {
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+    confettiPieces = [];
+    const colors = ['#7a6580','#a88e5f','#7d8a6b','#a87863','#b8a075','#967d9a','#7a8aa3','#9c7766'];
+    for (let i = 0; i < 150; i++) {
+      confettiPieces.push({
+        x: Math.random() * confettiCanvas.width,
+        y: -20 - Math.random() * 300,
+        w: 6 + Math.random() * 6,
+        h: 10 + Math.random() * 8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 4,
+        vy: 2 + Math.random() * 4,
+        rot: Math.random() * Math.PI * 2,
+        rotV: (Math.random() - 0.5) * 0.15,
+        opacity: 1,
+      });
+    }
+    confettiTick();
+  }
+
+  function confettiTick() {
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    let alive = false;
+    for (const p of confettiPieces) {
+      p.x += p.vx;
+      p.vy += 0.06;
+      p.y += p.vy;
+      p.rot += p.rotV;
+      if (p.y > confettiCanvas.height + 40) { p.opacity -= 0.02; }
+      if (p.opacity <= 0) continue;
+      alive = true;
+      confettiCtx.save();
+      confettiCtx.translate(p.x, p.y);
+      confettiCtx.rotate(p.rot);
+      confettiCtx.globalAlpha = Math.max(0, p.opacity);
+      confettiCtx.fillStyle = p.color;
+      confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      confettiCtx.restore();
+    }
+    if (alive) {
+      confettiAnim = requestAnimationFrame(confettiTick);
+    }
+  }
+
+  function stopConfetti() {
+    if (confettiAnim) cancelAnimationFrame(confettiAnim);
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    confettiPieces = [];
+  }
+
+  // --- Tooltip ---
+  let tooltipTimer = null;
+
+  function flashTooltip() {
+    spinTooltip.classList.add('visible');
+    clearTimeout(tooltipTimer);
+    tooltipTimer = setTimeout(() => spinTooltip.classList.remove('visible'), 2000);
+  }
+
+  spinBtn.addEventListener('mouseenter', () => {
+    if (spinBtn.disabled) flashTooltip();
+  });
+
+  spinBtn.addEventListener('mouseleave', () => {
+    spinTooltip.classList.remove('visible');
+    clearTimeout(tooltipTimer);
+  });
+
+  // --- Event Listeners ---
+  spinBtn.addEventListener('mousedown', e => { e.preventDefault(); startCharge(); });
+  spinBtn.addEventListener('mouseup', endCharge);
+  spinBtn.addEventListener('mouseleave', endCharge);
+
+  spinBtn.addEventListener('touchstart', e => { e.preventDefault(); startCharge(); }, { passive: false });
+  spinBtn.addEventListener('touchend', endCharge);
+
+  function isInModal() {
+    const el = document.activeElement;
+    return el && (el.closest('#groupModal') || el.closest('#jsonModal'));
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && !e.repeat && !isInModal()) {
+      e.preventDefault();
+      if (entries.length < 2 && !spinning) {
+        flashTooltip();
+        return;
+      }
+      startCharge();
+    }
+  });
+
+  document.addEventListener('keyup', e => {
+    if (e.code === 'Space' && !isInModal()) {
+      e.preventDefault();
+      endCharge();
+    }
+  });
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // --- Group Management (LocalStorage) ---
+  const STORAGE_KEY = 'gluecksrad_groups';
+  let groups = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  let activeGroupId = null;
+  let editingGroupId = null;
+
+  const configToggle = document.getElementById('configToggle');
+  const configBody = document.getElementById('configBody');
+  const groupsContainer = document.getElementById('groupsContainer');
+  const newGroupBtn = document.getElementById('newGroupBtn');
+  const groupModal = document.getElementById('groupModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const grpName = document.getElementById('grpName');
+  const grpDesc = document.getElementById('grpDesc');
+  const grpMembers = document.getElementById('grpMembers');
+  const addMemberBtn = document.getElementById('addMemberBtn');
+  const modalCancel = document.getElementById('modalCancel');
+  const modalSave = document.getElementById('modalSave');
+  const grpNameLabel = document.getElementById('grpNameLabel');
+  const grpDescLabel = document.getElementById('grpDescLabel');
+  const grpMembersLabel = document.getElementById('grpMembersLabel');
+
+  function saveGroups() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
+  }
+
+  // Toggle config panel
+  configToggle.addEventListener('click', e => {
+    if (e.target.closest('#newGroupBtn') || e.target.closest('#jsonModalBtn')) return;
+    configToggle.classList.toggle('open');
+    configBody.classList.toggle('open');
+  });
+
+  // Render groups
+  function renderGroups() {
+    if (groups.length === 0) {
+      groupsContainer.innerHTML = '<div class="empty-groups">' + esc(t('emptyGroups')) + '</div>';
+      return;
+    }
+    groupsContainer.innerHTML = '<div class="groups-grid">' + groups.map(g => `
+      <div class="group-card ${g.id === activeGroupId ? 'active' : ''}" data-id="${g.id}">
+        <div class="gc-actions">
+          <button class="btn-icon gc-edit" data-id="${g.id}" title="${esc(t('edit'))}">&#9998;</button>
+          <button class="btn-icon gc-delete" data-id="${g.id}" title="${esc(t('delete'))}">&times;</button>
+        </div>
+        <div class="gc-name">${esc(g.name)}</div>
+        <div class="gc-desc">${esc(g.description || '\u2014')}</div>
+        <div class="gc-count">${esc(t('participantCount', g.members.length))}</div>
+      </div>
+    `).join('') + '</div>';
+
+    // Click to load group
+    groupsContainer.querySelectorAll('.group-card').forEach(card => {
+      card.addEventListener('click', e => {
+        if (e.target.closest('.gc-edit') || e.target.closest('.gc-delete')) return;
+        loadGroup(card.dataset.id);
+      });
+    });
+
+    // Edit
+    groupsContainer.querySelectorAll('.gc-edit').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        openEditor(btn.dataset.id);
+      });
+    });
+
+    // Delete
+    groupsContainer.querySelectorAll('.gc-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const g = groups.find(x => x.id === id);
+        if (confirm(t('deleteGroupConfirm', g.name))) {
+          groups = groups.filter(x => x.id !== id);
+          if (activeGroupId === id) activeGroupId = null;
+          saveGroups();
+          renderGroups();
+        }
+      });
+    });
+  }
+
+  function loadGroup(id) {
+    const g = groups.find(x => x.id === id);
+    if (!g) return;
+    activeGroupId = id;
+    entries = g.members.map(m => ({ name: m.name, weight: m.weight }));
+    render();
+    renderGroups();
+  }
+
+  // Save current entries back to active group
+  window._saveCurrentToGroup = function() {
+    if (!activeGroupId) return;
+    const g = groups.find(x => x.id === activeGroupId);
+    if (!g) return;
+    g.members = entries.map(e => ({ name: e.name, weight: e.weight }));
+    saveGroups();
+    renderGroups();
+  };
+
+  // --- Group Editor Modal ---
+  function openEditor(id) {
+    editingGroupId = id || null;
+    const g = id ? groups.find(x => x.id === id) : null;
+    modalTitle.textContent = g ? t('editGroupTitle') : t('newGroupTitle');
+    grpName.value = g ? g.name : '';
+    grpDesc.value = g ? (g.description || '') : '';
+    renderModalMembers(g ? g.members : [{ name: '', weight: 0 }]);
+    groupModal.classList.add('visible');
+    grpName.focus();
+  }
+
+  function closeEditor() {
+    groupModal.classList.remove('visible');
+    editingGroupId = null;
+  }
+
+  function renderModalMembers(members) {
+    grpMembers.innerHTML = members.map((m, i) => `
+      <div class="modal-member">
+        <input type="text" placeholder="${esc(t('namePlaceholder'))}" value="${esc(m.name)}" data-idx="${i}" data-field="name" autocomplete="off">
+        <input type="number" min="0" value="${m.weight}" data-idx="${i}" data-field="weight">
+        <button class="btn-icon" onclick="window._removeModalMember(${i})">&times;</button>
+      </div>
+    `).join('');
+  }
+
+  let _modalMembers = [];
+
+  function getModalMembers() {
+    const rows = grpMembers.querySelectorAll('.modal-member');
+    return Array.from(rows).map(row => {
+      const inputs = row.querySelectorAll('input');
+      return { name: inputs[0].value.trim(), weight: Math.max(0, parseInt(inputs[1].value) || 0) };
+    });
+  }
+
+  window._removeModalMember = function(idx) {
+    const members = getModalMembers();
+    members.splice(idx, 1);
+    renderModalMembers(members);
+  };
+
+  addMemberBtn.addEventListener('click', () => {
+    const members = getModalMembers();
+    members.push({ name: '', weight: 0 });
+    renderModalMembers(members);
+    const inputs = grpMembers.querySelectorAll('.modal-member:last-child input');
+    if (inputs[0]) inputs[0].focus();
+  });
+
+  modalCancel.addEventListener('click', closeEditor);
+  groupModal.addEventListener('click', e => { if (e.target === groupModal) closeEditor(); });
+
+  modalSave.addEventListener('click', () => {
+    const name = grpName.value.trim();
+    if (!name) { grpName.focus(); return; }
+    const desc = grpDesc.value.trim();
+    const members = getModalMembers().filter(m => m.name);
+    if (members.length === 0) return;
+
+    if (editingGroupId) {
+      const g = groups.find(x => x.id === editingGroupId);
+      if (g) {
+        g.name = name;
+        g.description = desc;
+        g.members = members;
+      }
+    } else {
+      groups.push({
+        id: makeGroupId(),
+        name,
+        description: desc,
+        members,
+      });
+    }
+    saveGroups();
+    renderGroups();
+    closeEditor();
+  });
+
+  newGroupBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    // If entries are present, pre-fill from current state
+    if (entries.length > 0) {
+      editingGroupId = null;
+      modalTitle.textContent = t('newGroupTitle');
+      grpName.value = '';
+      grpDesc.value = '';
+      renderModalMembers(entries.map(e => ({ name: e.name, weight: e.weight })));
+      groupModal.classList.add('visible');
+      grpName.focus();
+    } else {
+      openEditor(null);
+    }
+    // Make sure config is open
+    if (!configBody.classList.contains('open')) {
+      configToggle.classList.add('open');
+      configBody.classList.add('open');
+    }
+  });
+
+  // --- JSON Modal (combined editor) ---
+  const jsonModal = document.getElementById('jsonModal');
+  const jsonModalBtn = document.getElementById('jsonModalBtn');
+  const jsonModalTitle = document.getElementById('jsonModalTitle');
+  const jsonModalClose = document.getElementById('jsonModalClose');
+  const jsonArea = document.getElementById('jsonArea');
+  const jsonStatus = document.getElementById('jsonStatus');
+  const jsonCopyBtn = document.getElementById('jsonCopyBtn');
+  const jsonDownloadBtn = document.getElementById('jsonDownloadBtn');
+  const jsonUploadBtn = document.getElementById('jsonUploadBtn');
+  const jsonFileInput = document.getElementById('jsonFileInput');
+  const jsonApplyBtn = document.getElementById('jsonApplyBtn');
+  const jsonOnlyActions = document.querySelectorAll('.json-only-action');
+  const jsonModeBtn = document.getElementById('jsonModeBtn');
+  const audImportToggle = document.getElementById('audImportToggle');
+  const audImportFields = document.getElementById('audImportFields');
+  const audGroupName = document.getElementById('audGroupName');
+  const audGroupNameLabel = document.getElementById('audGroupNameLabel');
+  const audImportOptions = document.getElementById('audImportOptions');
+  const audUsePresented = document.getElementById('audUsePresented');
+  const audPresentedLabel = document.getElementById('audPresentedLabel');
+  const jsonAreaLabel = document.getElementById('jsonAreaLabel');
+
+  let parsedJson = null;
+  let jsonDirty = false;
+  let audGroupNameTouched = false;
+
+  function applyLanguage() {
+    document.documentElement.lang = currentLang;
+    document.title = t('pageTitle');
+    languageToggle.title = t('switchLanguage');
+    langDe.classList.toggle('active', currentLang === 'de');
+    langEn.classList.toggle('active', currentLang === 'en');
+    footerAppName.textContent = t('pageTitle');
+    footerContact.textContent = t('contact');
+    legalSummary.textContent = t('legalNotice');
+    privacySummary.textContent = t('privacyPolicy');
+
+    participantsTitle.textContent = t('participants');
+    nameInput.placeholder = t('namePlaceholder');
+    weightInput.placeholder = t('weightPlaceholder');
+    spinHint.innerHTML = t('spinHint');
+    emptyWheel.textContent = t('addParticipants');
+    spinTooltip.textContent = t('minParticipants');
+    if (!chargeStart) spinLabel.textContent = t('spin');
+    savedGroupsTitle.textContent = t('savedGroups');
+    jsonModalBtn.textContent = t('jsonImportExport');
+    newGroupBtn.textContent = t('newGroup');
+
+    grpNameLabel.textContent = t('groupName');
+    grpName.placeholder = t('groupName');
+    grpDescLabel.textContent = t('description');
+    grpDesc.placeholder = t('optionalDescription');
+    grpMembersLabel.textContent = t('participants');
+    addMemberBtn.textContent = t('addParticipant');
+    modalCancel.textContent = t('cancel');
+    modalSave.textContent = t('save');
+    modalTitle.textContent = editingGroupId ? t('editGroupTitle') : t('newGroupTitle');
+
+    jsonModeBtn.textContent = t('groupJson');
+    audImportToggle.textContent = t('audImport');
+    audGroupNameLabel.textContent = t('groupName');
+    audGroupName.placeholder = 'z.B. g4';
+    audPresentedLabel.textContent = t('audPresented');
+    jsonUploadBtn.textContent = t('loadFile');
+    jsonCopyBtn.textContent = t('copy');
+    jsonDownloadBtn.textContent = t('download');
+    jsonModalClose.textContent = t('closePlain');
+
+    winnerLabel.textContent = t('winner');
+    closeOverlay.textContent = t('close');
+
+    setJsonMode(isAudImportMode(), false);
+    render();
+    renderGroups();
+  }
+
+  languageToggle.addEventListener('click', () => {
+    currentLang = currentLang === 'de' ? 'en' : 'de';
+    localStorage.setItem(LANG_STORAGE_KEY, currentLang);
+    applyLanguage();
+  });
+
+  function openJsonModal() {
+    setJsonMode(false, true);
+    jsonModal.classList.add('visible');
+    jsonArea.focus();
+  }
+
+  function closeJsonModal() {
+    jsonModal.classList.remove('visible');
+  }
+
+  function isAudImportMode() {
+    return audImportToggle.getAttribute('aria-pressed') === 'true';
+  }
+
+  function resetJsonState() {
+    jsonArea.className = 'json-textarea';
+    jsonStatus.textContent = '';
+    jsonStatus.className = 'json-status';
+    jsonApplyBtn.disabled = true;
+    parsedJson = null;
+  }
+
+  function setJsonMode(audMode, resetContent) {
+    jsonModeBtn.classList.toggle('active', !audMode);
+    jsonModeBtn.setAttribute('aria-pressed', audMode ? 'false' : 'true');
+    audImportToggle.classList.toggle('active', audMode);
+    audImportToggle.setAttribute('aria-pressed', audMode ? 'true' : 'false');
+    jsonModalTitle.textContent = audMode ? t('audImport') : t('groupJsonEditor');
+    audImportFields.classList.toggle('visible', audMode);
+    jsonOnlyActions.forEach(btn => btn.classList.toggle('hidden', audMode));
+    jsonAreaLabel.textContent = audMode ? t('audJson') : t('groupJson');
+    jsonApplyBtn.textContent = audMode ? t('import') : t('apply');
+    jsonArea.placeholder = audMode
+      ? t('audJsonPlaceholder')
+      : t('groupJsonPlaceholder');
+
+    if (resetContent) {
+      jsonArea.value = audMode ? '' : JSON.stringify(groups, null, 2);
+      jsonDirty = false;
+      audGroupName.value = '';
+      audGroupNameTouched = false;
+      resetJsonState();
+      if (!audMode) validateJson();
+      return;
+    }
+
+    if (!audMode) {
+      audGroupName.value = '';
+      audGroupNameTouched = false;
+    }
+    validateJson();
+  }
+
+  function parseNonNegativeInt(value) {
+    return Math.max(0, parseInt(value, 10) || 0);
+  }
+
+  function makeGroupId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function validateAudImport(data) {
+    if (!Array.isArray(data)) throw new Error(t('audArrayRequired'));
+    const activeRows = data.filter(row => row && typeof row === 'object' && parseNonNegativeInt(row._inactive) === 0);
+    if (activeRows.length === 0) throw new Error(t('audEmpty'));
+
+    const groupNames = [...new Set(activeRows.map(row => String(row._group || '').trim()).filter(Boolean))];
+    if (!audGroupNameTouched) {
+      audGroupName.value = groupNames.length === 1 ? groupNames[0] : '';
+    }
+    const groupName = audGroupName.value.trim();
+    if (!groupName) throw new Error(t('groupNameRequired'));
+
+    const members = activeRows.map((row, idx) => {
+      const first = String(row._firstname || '').trim();
+      const last = String(row._lastname || '').trim();
+      const name = [first, last].filter(Boolean).join(' ').trim();
+      if (!name) throw new Error(t('audNameRequired', idx + 1));
+      return {
+        name,
+        weight: audUsePresented.checked ? parseNonNegativeInt(row._presented) : 0,
+      };
+    });
+
+    const tutorialGroups = [...new Set(activeRows.map(row => String(row._tutorial_group || '').trim()).filter(Boolean))];
+    return {
+      id: makeGroupId(),
+      name: groupName,
+      description: t('audDescription', tutorialGroups),
+      members,
+    };
+  }
+
+  function validateJson() {
+    const raw = jsonArea.value.trim();
+    if (!raw) {
+      jsonArea.className = 'json-textarea';
+      jsonStatus.textContent = '';
+      jsonStatus.className = 'json-status';
+      jsonApplyBtn.disabled = true;
+      parsedJson = null;
+      return;
+    }
+    try {
+      const data = JSON.parse(raw);
+      if (isAudImportMode()) {
+        const group = validateAudImport(data);
+        jsonArea.className = 'json-textarea valid';
+        jsonStatus.textContent = t('audStatus', group.name, group.members.length);
+        jsonStatus.className = 'json-status ok';
+        jsonApplyBtn.disabled = !jsonDirty;
+        parsedJson = group;
+        return;
+      }
+
+      if (!Array.isArray(data)) throw new Error(t('jsonArrayRequired'));
+      for (const g of data) {
+        if (!g.name || typeof g.name !== 'string') throw new Error(t('groupNameFieldRequired'));
+        if (!Array.isArray(g.members)) throw new Error(t('groupMembersRequired'));
+      }
+      const totalMembers = data.reduce((s, g) => s + g.members.length, 0);
+      jsonArea.className = 'json-textarea valid';
+      jsonStatus.textContent = t('groupStatus', data.length, totalMembers);
+      jsonStatus.className = 'json-status ok';
+      jsonApplyBtn.disabled = !jsonDirty;
+      parsedJson = data;
+    } catch (err) {
+      jsonArea.className = 'json-textarea invalid';
+      jsonStatus.textContent = err.message;
+      jsonStatus.className = 'json-status error';
+      jsonApplyBtn.disabled = true;
+      parsedJson = null;
+    }
+  }
+
+  jsonArea.addEventListener('input', () => {
+    jsonDirty = true;
+    if (isAudImportMode() && !audGroupName.value.trim()) audGroupNameTouched = false;
+    validateJson();
+  });
+  audGroupName.addEventListener('input', () => {
+    audGroupNameTouched = true;
+    jsonDirty = true;
+    validateJson();
+  });
+  audImportToggle.addEventListener('click', () => {
+    setJsonMode(true, true);
+  });
+  jsonModeBtn.addEventListener('click', () => {
+    setJsonMode(false, true);
+  });
+  audUsePresented.addEventListener('change', validateJson);
+
+  jsonModalBtn.addEventListener('click', e => { e.stopPropagation(); openJsonModal(); });
+  jsonModalClose.addEventListener('click', closeJsonModal);
+  jsonModal.addEventListener('click', e => { if (e.target === jsonModal) closeJsonModal(); });
+
+  // Copy
+  jsonCopyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(jsonArea.value).then(() => {
+      const orig = jsonCopyBtn.textContent;
+      jsonCopyBtn.textContent = t('copied');
+      setTimeout(() => jsonCopyBtn.textContent = orig, 1500);
+    });
+  });
+
+  // Download
+  jsonDownloadBtn.addEventListener('click', () => {
+    const blob = new Blob([jsonArea.value], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gluecksrad-gruppen.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Upload file into textarea
+  jsonUploadBtn.addEventListener('click', () => jsonFileInput.click());
+  jsonFileInput.addEventListener('change', () => {
+    const file = jsonFileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      jsonArea.value = reader.result;
+      jsonDirty = true;
+      if (isAudImportMode()) audGroupNameTouched = false;
+      validateJson();
+    };
+    reader.readAsText(file);
+    jsonFileInput.value = '';
+  });
+
+  // Apply changes
+  jsonApplyBtn.addEventListener('click', () => {
+    if (!parsedJson) return;
+    if (isAudImportMode()) {
+      const group = parsedJson;
+      groups.push(group);
+      activeGroupId = group.id;
+      entries = group.members.map(m => ({ name: m.name, weight: m.weight }));
+      render();
+    } else {
+      groups = parsedJson.map(g => ({
+        id: g.id || makeGroupId(),
+        name: g.name,
+        description: g.description || '',
+        members: g.members.map(m => ({ name: m.name || '', weight: parseNonNegativeInt(m.weight) })),
+      }));
+      activeGroupId = null;
+    }
+    saveGroups();
+    renderGroups();
+    if (!configBody.classList.contains('open')) {
+      configToggle.classList.add('open');
+      configBody.classList.add('open');
+    }
+    closeJsonModal();
+  });
+
+  // Init
+  applyLanguage();
+  // Auto-open config if groups exist
+  if (groups.length > 0) {
+    configToggle.classList.add('open');
+    configBody.classList.add('open');
+  }
+})();
+</script>
+</body>
+</html>
