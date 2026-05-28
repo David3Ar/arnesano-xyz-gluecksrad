@@ -729,11 +729,7 @@
 
   .aud-import-fields {
     display: none;
-    gap: 12px;
-    padding: 12px;
-    border: 1px solid var(--border);
-    border-radius: calc(var(--radius) - 2px);
-    background-color: var(--muted);
+    gap: 14px;
   }
 
   .aud-import-fields.visible {
@@ -741,9 +737,79 @@
     flex-direction: column;
   }
 
-  .aud-group-field input {
-    background-color: var(--surface);
+  .aud-hint-box {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background-color: var(--muted);
   }
+  .aud-hint-box strong { color: var(--text); font-weight: 600; }
+
+  .aud-mode-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .aud-mode-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .aud-mode-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  .aud-mode-card:hover { border-color: var(--text-secondary); }
+  .aud-mode-card input { position: absolute; opacity: 0; pointer-events: none; }
+  .aud-mode-card .card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .aud-mode-card .card-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+  .aud-mode-card.checked {
+    border-color: var(--accent);
+    background-color: hsl(28 32% 38% / .06);
+    box-shadow: 0 0 0 2px hsl(28 32% 38% / .15);
+  }
+
+  .aud-preview {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background-color: var(--muted);
+  }
+  .aud-preview.visible { display: flex; }
+  .aud-preview-row { font-size: 12px; color: var(--text); }
+  .aud-preview-row .label { font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+  .aud-preview-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .aud-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .aud-chip .count { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .aud-chip.conflict { border-color: var(--danger); color: var(--danger); }
 
   .json-options input {
     width: auto;
@@ -756,7 +822,7 @@
 
   .json-textarea {
     width: 100%;
-    min-height: 220px;
+    min-height: 320px;
     height: auto;
     border: 1px solid var(--border);
     border-radius: calc(var(--radius) - 2px);
@@ -1004,37 +1070,53 @@
 
 <!-- JSON Modal -->
 <div class="modal-overlay" id="jsonModal">
-  <div class="modal" style="width:540px;">
-    <div class="modal-title-row">
-      <h3 id="jsonModalTitle">JSON Gruppen-Editor</h3>
-      <div class="import-mode-tabs" aria-label="Import-Modus">
-        <button type="button" class="mode-tab active" id="jsonModeBtn" aria-pressed="true">Gruppen JSON</button>
-        <button type="button" class="mode-tab aud" id="audImportToggle" aria-pressed="false">AUD Import</button>
-      </div>
+  <div class="modal" style="width:600px;">
+    <h3 id="jsonModalTitle">Import / Export</h3>
+    <div class="import-mode-tabs" aria-label="Import-Modus" style="align-self:stretch;">
+      <button type="button" class="mode-tab active" id="jsonModeBtn" aria-pressed="true" style="flex:1;">Gruppen JSON</button>
+      <button type="button" class="mode-tab aud" id="audImportToggle" aria-pressed="false" style="flex:1;">AUD Import</button>
     </div>
+
     <div class="aud-import-fields" id="audImportFields">
-      <div class="aud-group-field">
-        <label id="audGroupNameLabel">Groupname</label>
-        <input type="text" id="audGroupName" placeholder="z.B. g4" autocomplete="off" required>
+      <div class="aud-hint-box" id="audHint">
+        Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>
+        So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>
+        Es wird je eine Gruppe pro Übungsgruppe und Tutorium erstellt; inaktive Teilnehmer werden übersprungen.
       </div>
-      <label class="json-options visible" id="audImportOptions">
-        <input type="checkbox" id="audUsePresented" checked>
-        <span id="audPresentedLabel">Presented-Wert aus AUD-Daten verwenden</span>
-      </label>
+
+      <div>
+        <label class="aud-mode-label" id="audPrefixLabel" for="audPrefix">Gruppennamen-Präfix (optional)</label>
+        <input type="text" id="audPrefix" placeholder="z.B. WS25-" autocomplete="off" style="margin-top:6px;">
+      </div>
+
+      <div class="aud-preview" id="audPreview">
+        <div class="aud-preview-row">
+          <span class="label" id="audPreviewExLabel">Übungsgruppen</span>
+          <div class="aud-preview-chips" id="audPreviewExercise"></div>
+        </div>
+        <div class="aud-preview-row">
+          <span class="label" id="audPreviewTutLabel">Tutorien</span>
+          <div class="aud-preview-chips" id="audPreviewTutorial"></div>
+        </div>
+      </div>
     </div>
-    <label class="json-area-label" id="jsonAreaLabel" for="jsonArea">Gruppen JSON</label>
-    <textarea class="json-textarea" id="jsonArea"></textarea>
-    <div class="json-status" id="jsonStatus"></div>
+
+    <div>
+      <label class="json-area-label" id="jsonAreaLabel" for="jsonArea">Gruppen JSON</label>
+      <textarea class="json-textarea" id="jsonArea"></textarea>
+      <div class="json-status" id="jsonStatus"></div>
+    </div>
+
     <div class="json-actions">
       <button class="btn btn-ghost" id="jsonUploadBtn">Datei laden</button>
       <input type="file" id="jsonFileInput" accept=".json" style="display:none">
       <button class="btn btn-ghost json-only-action" id="jsonCopyBtn">Kopieren</button>
       <button class="btn btn-ghost json-only-action" id="jsonDownloadBtn">Herunterladen</button>
       <div style="flex:1"></div>
-      <button class="btn btn-success" id="jsonApplyBtn" disabled>Anwenden</button>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" id="jsonModalClose">Schliessen</button>
+      <button class="btn btn-ghost" id="jsonModalClose">Schließen</button>
+      <button class="btn btn-success json-only-action" id="jsonApplyBtn" disabled>Anwenden</button>
+      <button class="btn btn-ghost aud-only-action" id="audApplyNew" disabled>Create new</button>
+      <button class="btn btn-success aud-only-action" id="audApplyUpdate" disabled>Update</button>
     </div>
   </div>
 </div>
@@ -1126,11 +1208,24 @@
       save: 'Speichern',
       groupJsonEditor: 'JSON Gruppen-Editor',
       groupJson: 'Gruppen JSON',
-      audImport: 'AUD Import',
+      audImport: 'Full AuD Import',
       audJson: 'AUD JSON',
       audJsonPlaceholder: 'AUD JSON-Array einfuegen...',
       groupJsonPlaceholder: 'Glücksrad-Gruppen JSON einfuegen...',
-      audPresented: 'Presented-Wert aus AUD-Daten verwenden',
+      audModeUpdate: 'Update',
+      audModeUpdateDesc: 'Vorhandene gleichnamige Gruppen werden überschrieben, neue angelegt.',
+      audModeNew: 'Create new',
+      audModeNewDesc: 'Bei Namenskonflikt wird _neu angehängt.',
+      audModeHeading: 'Import-Modus',
+      audPrefixLabel: 'Gruppennamen-Präfix (optional)',
+      audPreviewExLabel: 'Übungsgruppen',
+      audPreviewTutLabel: 'Tutorien',
+      audHintHtml: 'Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>Es wird je eine Gruppe pro Übungsgruppe und Tutorium erstellt; inaktive Teilnehmer werden übersprungen.',
+      jsonModalTitle: 'Import / Export',
+      audStatusMulti: (groupCount, members) => groupCount + ' Gruppe(n), ' + members + ' Teilnehmer',
+      audApplyLabel: groupCount => groupCount + ' Gruppen importieren',
+      audExerciseDesc: count => 'Übungsgruppe · ' + count + ' Teilnehmer',
+      audTutorialDesc: count => 'Tutorium · ' + count + ' Teilnehmer',
       loadFile: 'Datei laden',
       copy: 'Kopieren',
       copied: 'Kopiert!',
@@ -1185,11 +1280,24 @@
       save: 'Save',
       groupJsonEditor: 'JSON Group Editor',
       groupJson: 'Groups JSON',
-      audImport: 'AUD Import',
+      audImport: 'Full AuD Import',
       audJson: 'AUD JSON',
       audJsonPlaceholder: 'Paste AUD JSON array...',
       groupJsonPlaceholder: 'Paste wheel groups JSON...',
-      audPresented: 'Use presented value from AUD data',
+      audModeUpdate: 'Update',
+      audModeUpdateDesc: 'Existing groups with the same name are overwritten, new ones are created.',
+      audModeNew: 'Create new',
+      audModeNewDesc: 'On name conflict, _neu is appended.',
+      audModeHeading: 'Import mode',
+      audPrefixLabel: 'Group name prefix (optional)',
+      audPreviewExLabel: 'Exercise groups',
+      audPreviewTutLabel: 'Tutorials',
+      audHintHtml: 'Paste the contents of <code>submissions.json</code> below or load the file.<br>How to export it in AuD: <em>Submissions &rarr; All Groups</em> (with <em>include Tutorials</em> if needed).<br>One group is created per exercise group and tutorial; inactive participants are skipped.',
+      jsonModalTitle: 'Import / Export',
+      audStatusMulti: (groupCount, members) => groupCount + ' group' + (groupCount === 1 ? '' : 's') + ', ' + members + ' participant' + (members === 1 ? '' : 's'),
+      audApplyLabel: groupCount => 'Import ' + groupCount + ' group' + (groupCount === 1 ? '' : 's'),
+      audExerciseDesc: count => 'Exercise group · ' + count + ' participant' + (count === 1 ? '' : 's'),
+      audTutorialDesc: count => 'Tutorial · ' + count + ' participant' + (count === 1 ? '' : 's'),
       loadFile: 'Load file',
       copy: 'Copy',
       copied: 'Copied!',
@@ -1972,16 +2080,20 @@
   const jsonModeBtn = document.getElementById('jsonModeBtn');
   const audImportToggle = document.getElementById('audImportToggle');
   const audImportFields = document.getElementById('audImportFields');
-  const audGroupName = document.getElementById('audGroupName');
-  const audGroupNameLabel = document.getElementById('audGroupNameLabel');
-  const audImportOptions = document.getElementById('audImportOptions');
-  const audUsePresented = document.getElementById('audUsePresented');
-  const audPresentedLabel = document.getElementById('audPresentedLabel');
+  const audPrefix = document.getElementById('audPrefix');
+  const audPrefixLabel = document.getElementById('audPrefixLabel');
+  const audPreview = document.getElementById('audPreview');
+  const audPreviewExercise = document.getElementById('audPreviewExercise');
+  const audPreviewTutorial = document.getElementById('audPreviewTutorial');
+  const audPreviewExLabel = document.getElementById('audPreviewExLabel');
+  const audPreviewTutLabel = document.getElementById('audPreviewTutLabel');
+  const audApplyUpdate = document.getElementById('audApplyUpdate');
+  const audApplyNew = document.getElementById('audApplyNew');
+  const audOnlyActions = document.querySelectorAll('.aud-only-action');
   const jsonAreaLabel = document.getElementById('jsonAreaLabel');
 
   let parsedJson = null;
   let jsonDirty = false;
-  let audGroupNameTouched = false;
 
   function applyLanguage() {
     document.documentElement.lang = currentLang;
@@ -2017,9 +2129,15 @@
 
     jsonModeBtn.textContent = t('groupJson');
     audImportToggle.textContent = t('audImport');
-    audGroupNameLabel.textContent = t('groupName');
-    audGroupName.placeholder = 'z.B. g4';
-    audPresentedLabel.textContent = t('audPresented');
+    jsonModalTitle.textContent = t('jsonModalTitle');
+    audPrefixLabel.textContent = t('audPrefixLabel');
+    audPreviewExLabel.textContent = t('audPreviewExLabel');
+    audPreviewTutLabel.textContent = t('audPreviewTutLabel');
+    audApplyUpdate.textContent = t('audModeUpdate');
+    audApplyNew.textContent = t('audModeNew');
+    audApplyUpdate.title = t('audModeUpdateDesc');
+    audApplyNew.title = t('audModeNewDesc');
+    document.getElementById('audHint').innerHTML = t('audHintHtml');
     jsonUploadBtn.textContent = t('loadFile');
     jsonCopyBtn.textContent = t('copy');
     jsonDownloadBtn.textContent = t('download');
@@ -2058,6 +2176,11 @@
     jsonStatus.textContent = '';
     jsonStatus.className = 'json-status';
     jsonApplyBtn.disabled = true;
+    audApplyUpdate.disabled = true;
+    audApplyNew.disabled = true;
+    audPreview.classList.remove('visible');
+    audPreviewExercise.innerHTML = '';
+    audPreviewTutorial.innerHTML = '';
     parsedJson = null;
   }
 
@@ -2066,11 +2189,10 @@
     jsonModeBtn.setAttribute('aria-pressed', audMode ? 'false' : 'true');
     audImportToggle.classList.toggle('active', audMode);
     audImportToggle.setAttribute('aria-pressed', audMode ? 'true' : 'false');
-    jsonModalTitle.textContent = audMode ? t('audImport') : t('groupJsonEditor');
     audImportFields.classList.toggle('visible', audMode);
     jsonOnlyActions.forEach(btn => btn.classList.toggle('hidden', audMode));
+    audOnlyActions.forEach(btn => btn.classList.toggle('hidden', !audMode));
     jsonAreaLabel.textContent = audMode ? t('audJson') : t('groupJson');
-    jsonApplyBtn.textContent = audMode ? t('import') : t('apply');
     jsonArea.placeholder = audMode
       ? t('audJsonPlaceholder')
       : t('groupJsonPlaceholder');
@@ -2078,16 +2200,9 @@
     if (resetContent) {
       jsonArea.value = audMode ? '' : JSON.stringify(groups, null, 2);
       jsonDirty = false;
-      audGroupName.value = '';
-      audGroupNameTouched = false;
       resetJsonState();
       if (!audMode) validateJson();
       return;
-    }
-
-    if (!audMode) {
-      audGroupName.value = '';
-      audGroupNameTouched = false;
     }
     validateJson();
   }
@@ -2105,31 +2220,58 @@
     const activeRows = data.filter(row => row && typeof row === 'object' && parseNonNegativeInt(row._inactive) === 0);
     if (activeRows.length === 0) throw new Error(t('audEmpty'));
 
-    const groupNames = [...new Set(activeRows.map(row => String(row._group || '').trim()).filter(Boolean))];
-    if (!audGroupNameTouched) {
-      audGroupName.value = groupNames.length === 1 ? groupNames[0] : '';
-    }
-    const groupName = audGroupName.value.trim();
-    if (!groupName) throw new Error(t('groupNameRequired'));
+    const exerciseBuckets = new Map();
+    const tutorialBuckets = new Map();
 
-    const members = activeRows.map((row, idx) => {
+    activeRows.forEach((row, idx) => {
       const first = String(row._firstname || '').trim();
       const last = String(row._lastname || '').trim();
       const name = [first, last].filter(Boolean).join(' ').trim();
       if (!name) throw new Error(t('audNameRequired', idx + 1));
-      return {
-        name,
-        weight: audUsePresented.checked ? parseNonNegativeInt(row._presented) : 0,
-      };
+
+      const groupName = String(row._group || '').trim();
+      if (groupName) {
+        if (!exerciseBuckets.has(groupName)) exerciseBuckets.set(groupName, []);
+        exerciseBuckets.get(groupName).push({ name, weight: parseNonNegativeInt(row._presented) });
+      }
+
+      const tutName = String(row._tutorial_group || '').trim();
+      if (tutName) {
+        if (!tutorialBuckets.has(tutName)) tutorialBuckets.set(tutName, []);
+        tutorialBuckets.get(tutName).push({ name, weight: 0 });
+      }
     });
 
-    const tutorialGroups = [...new Set(activeRows.map(row => String(row._tutorial_group || '').trim()).filter(Boolean))];
-    return {
-      id: makeGroupId(),
-      name: groupName,
-      description: t('audDescription', tutorialGroups),
-      members,
-    };
+    const result = [];
+    for (const [gname, members] of exerciseBuckets) {
+      result.push({ name: gname, kind: 'exercise', members });
+    }
+    for (const [tname, members] of tutorialBuckets) {
+      result.push({ name: tname, kind: 'tutorial', members });
+    }
+    if (result.length === 0) throw new Error(t('audEmpty'));
+    return result;
+  }
+
+  function prefixedName(name) {
+    return (audPrefix.value || '') + name;
+  }
+
+  function renderAudPreview(groupsParsed) {
+    audPreviewExercise.innerHTML = '';
+    audPreviewTutorial.innerHTML = '';
+    const existingNames = new Set(groups.map(g => g.name));
+    for (const g of groupsParsed) {
+      const chip = document.createElement('span');
+      chip.className = 'aud-chip';
+      const finalName = prefixedName(g.name);
+      const isConflict = existingNames.has(finalName);
+      if (isConflict) chip.classList.add('conflict');
+      chip.innerHTML = esc(finalName) + ' <span class="count">' + g.members.length + '</span>';
+      if (isConflict) chip.title = 'Bereits vorhanden — Update überschreibt, Create new hängt _neu an';
+      (g.kind === 'tutorial' ? audPreviewTutorial : audPreviewExercise).appendChild(chip);
+    }
+    audPreview.classList.add('visible');
   }
 
   function validateJson() {
@@ -2139,20 +2281,27 @@
       jsonStatus.textContent = '';
       jsonStatus.className = 'json-status';
       jsonApplyBtn.disabled = true;
+      audApplyUpdate.disabled = true;
+      audApplyNew.disabled = true;
+      audPreview.classList.remove('visible');
       parsedJson = null;
       return;
     }
     try {
       const data = JSON.parse(raw);
       if (isAudImportMode()) {
-        const group = validateAudImport(data);
+        const groupsParsed = validateAudImport(data);
+        const totalMembers = groupsParsed.reduce((s, g) => s + g.members.length, 0);
         jsonArea.className = 'json-textarea valid';
-        jsonStatus.textContent = t('audStatus', group.name, group.members.length);
+        jsonStatus.textContent = t('audStatusMulti', groupsParsed.length, totalMembers);
         jsonStatus.className = 'json-status ok';
-        jsonApplyBtn.disabled = !jsonDirty;
-        parsedJson = group;
+        audApplyUpdate.disabled = false;
+        audApplyNew.disabled = false;
+        renderAudPreview(groupsParsed);
+        parsedJson = groupsParsed;
         return;
       }
+      audPreview.classList.remove('visible');
 
       if (!Array.isArray(data)) throw new Error(t('jsonArrayRequired'));
       for (const g of data) {
@@ -2170,19 +2319,19 @@
       jsonStatus.textContent = err.message;
       jsonStatus.className = 'json-status error';
       jsonApplyBtn.disabled = true;
+      audApplyUpdate.disabled = true;
+      audApplyNew.disabled = true;
+      audPreview.classList.remove('visible');
       parsedJson = null;
     }
   }
 
   jsonArea.addEventListener('input', () => {
     jsonDirty = true;
-    if (isAudImportMode() && !audGroupName.value.trim()) audGroupNameTouched = false;
     validateJson();
   });
-  audGroupName.addEventListener('input', () => {
-    audGroupNameTouched = true;
-    jsonDirty = true;
-    validateJson();
+  audPrefix.addEventListener('input', () => {
+    if (isAudImportMode() && Array.isArray(parsedJson)) renderAudPreview(parsedJson);
   });
   audImportToggle.addEventListener('click', () => {
     setJsonMode(true, true);
@@ -2190,7 +2339,6 @@
   jsonModeBtn.addEventListener('click', () => {
     setJsonMode(false, true);
   });
-  audUsePresented.addEventListener('change', validateJson);
 
   jsonModalBtn.addEventListener('click', e => { e.stopPropagation(); openJsonModal(); });
   jsonModalClose.addEventListener('click', closeJsonModal);
@@ -2232,24 +2380,36 @@
     jsonFileInput.value = '';
   });
 
-  // Apply changes
-  jsonApplyBtn.addEventListener('click', () => {
+  function applyAudImport(mode) {
     if (!parsedJson) return;
-    if (isAudImportMode()) {
-      const group = parsedJson;
-      groups.push(group);
-      activeGroupId = group.id;
-      entries = group.members.map(m => ({ name: m.name, weight: m.weight }));
-      render();
-    } else {
-      groups = parsedJson.map(g => ({
-        id: g.id || makeGroupId(),
-        name: g.name,
-        description: g.description || '',
-        members: g.members.map(m => ({ name: m.name || '', weight: parseNonNegativeInt(m.weight) })),
-      }));
-      activeGroupId = null;
+    for (const incoming of parsedJson) {
+      const desc = incoming.kind === 'tutorial'
+        ? t('audTutorialDesc', incoming.members.length)
+        : t('audExerciseDesc', incoming.members.length);
+      const targetName = prefixedName(incoming.name);
+      if (mode === 'update') {
+        const existing = groups.find(g => g.name === targetName);
+        if (existing) {
+          existing.description = desc;
+          existing.members = incoming.members.map(m => ({ name: m.name, weight: m.weight }));
+        } else {
+          groups.push({ id: makeGroupId(), name: targetName, description: desc, members: incoming.members.map(m => ({ ...m })) });
+        }
+      } else {
+        let finalName = targetName;
+        if (groups.some(g => g.name === finalName)) {
+          let suffix = '_neu';
+          while (groups.some(g => g.name === targetName + suffix)) suffix += '_neu';
+          finalName = targetName + suffix;
+        }
+        groups.push({ id: makeGroupId(), name: finalName, description: desc, members: incoming.members.map(m => ({ ...m })) });
+      }
     }
+    activeGroupId = null;
+    finishImport();
+  }
+
+  function finishImport() {
     saveGroups();
     renderGroups();
     if (!configBody.classList.contains('open')) {
@@ -2257,6 +2417,22 @@
       configBody.classList.add('open');
     }
     closeJsonModal();
+  }
+
+  audApplyUpdate.addEventListener('click', () => applyAudImport('update'));
+  audApplyNew.addEventListener('click', () => applyAudImport('new'));
+
+  // JSON-mode apply
+  jsonApplyBtn.addEventListener('click', () => {
+    if (!parsedJson || isAudImportMode()) return;
+    groups = parsedJson.map(g => ({
+      id: g.id || makeGroupId(),
+      name: g.name,
+      description: g.description || '',
+      members: g.members.map(m => ({ name: m.name || '', weight: parseNonNegativeInt(m.weight) })),
+    }));
+    activeGroupId = null;
+    finishImport();
   });
 
   // Init
