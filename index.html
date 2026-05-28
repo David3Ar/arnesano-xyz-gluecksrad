@@ -1061,6 +1061,10 @@
     </div>
   </div>
 
+  <div class="footer-credits" style="margin-top:8px;font-size:12px;color:var(--text-secondary);">
+    Music by <a href="https://pixabay.com/users/magpiemusic-40918098/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=513687" target="_blank" rel="noopener">Yevgeniy Sorokin</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=513687" target="_blank" rel="noopener">Pixabay</a>
+  </div>
+
   <details>
     <summary id="legalSummary">Impressum</summary>
     <div class="legal-body">
@@ -1437,28 +1441,55 @@
     osc.stop(start + duration);
   }
 
-  // Ice cream truck / music box melody
-  function playIceCreamTruck() {
-    const ctx = getAudio();
-    const t = ctx.currentTime;
-    // Classic ice cream truck jingle (Do Your Ears Hang Low / Turkey in the Straw style)
-    const melody = [
-      [523, 0.18], [587, 0.18], [659, 0.18], [587, 0.18],
-      [523, 0.36], [523, 0.36],
-      [587, 0.18], [659, 0.18], [698, 0.18], [659, 0.18],
-      [587, 0.54],
-      [659, 0.18], [698, 0.18], [784, 0.36],
-      [698, 0.18], [659, 0.18], [587, 0.36],
-      [523, 0.18], [587, 0.18], [659, 0.18], [587, 0.18],
-      [523, 0.72],
-    ];
-    let offset = 0;
-    for (const [freq, dur] of melody) {
-      playNote(ctx, freq, t + offset, dur + 0.05, 0.1, 'triangle');
-      // Subtle octave shimmer
-      playNote(ctx, freq * 2, t + offset, dur + 0.05, 0.03, 'sine');
-      offset += dur;
+  // Spin music — Pixabay track (Yevgeniy Sorokin – Action Trailer Promo Rock)
+  const SPIN_MUSIC_START = 55.5;
+  const SPIN_MUSIC_TARGET_VOL = 0.75;
+  const SPIN_MUSIC_START_VOL = 0.675; // max 10% softer than target
+  const SPIN_MUSIC_FADE_IN_MS = 1500;
+  const SPIN_MUSIC_FADE_OUT_MS = 2200;
+  let spinMusic = null;
+  let spinMusicFadeId = null;
+  function getSpinMusic() {
+    if (!spinMusic) {
+      spinMusic = new Audio('magpiemusic-action-trailer-promo-rock-513687.mp3');
+      spinMusic.preload = 'auto';
     }
+    return spinMusic;
+  }
+  function fadeSpinMusic(targetVol, durationMs, onDone) {
+    if (!spinMusic) return;
+    const a = spinMusic;
+    if (spinMusicFadeId) { clearInterval(spinMusicFadeId); spinMusicFadeId = null; }
+    const startVol = a.volume;
+    const startTime = performance.now();
+    spinMusicFadeId = setInterval(() => {
+      const t = Math.min(1, (performance.now() - startTime) / durationMs);
+      // smoothstep for gentle ease in/out
+      const eased = t * t * (3 - 2 * t);
+      a.volume = Math.max(0, Math.min(1, startVol + (targetVol - startVol) * eased));
+      if (t >= 1) {
+        clearInterval(spinMusicFadeId);
+        spinMusicFadeId = null;
+        if (onDone) onDone();
+      }
+    }, 30);
+  }
+  function playIceCreamTruck() {
+    const a = getSpinMusic();
+    if (spinMusicFadeId) { clearInterval(spinMusicFadeId); spinMusicFadeId = null; }
+    try { a.currentTime = SPIN_MUSIC_START; } catch (_) {}
+    a.volume = SPIN_MUSIC_START_VOL;
+    a.play().then(() => {
+      fadeSpinMusic(SPIN_MUSIC_TARGET_VOL, SPIN_MUSIC_FADE_IN_MS);
+    }).catch(() => {});
+  }
+  function stopSpinMusic(extraFadeMs = 0) {
+    if (!spinMusic) return;
+    const a = spinMusic;
+    fadeSpinMusic(0, SPIN_MUSIC_FADE_OUT_MS + extraFadeMs, () => {
+      a.pause();
+      try { a.currentTime = SPIN_MUSIC_START; } catch (_) {}
+    });
   }
 
   // Winner fanfare
@@ -1583,6 +1614,7 @@
     return entries[entries.length - 1];
   }
 
+  let autoStopMusicTimer = null;
   function showWinner() {
     const winner = getWinner();
     resultInline.textContent = t('winnerInline', winner.name);
@@ -1590,11 +1622,18 @@
     overlay.classList.add('visible');
     playFanfare();
     launchConfetti();
+    if (autoStopMusicTimer) clearTimeout(autoStopMusicTimer);
+    autoStopMusicTimer = setTimeout(() => {
+      autoStopMusicTimer = null;
+      stopSpinMusic(1000);
+    }, 5000);
   }
 
   function hideOverlay() {
     overlay.classList.remove('visible');
     stopConfetti();
+    if (autoStopMusicTimer) { clearTimeout(autoStopMusicTimer); autoStopMusicTimer = null; }
+    stopSpinMusic();
   }
 
   closeOverlay.addEventListener('click', hideOverlay);
