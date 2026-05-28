@@ -1081,7 +1081,7 @@
       <div class="aud-hint-box" id="audHint">
         Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>
         So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>
-        Es wird je eine Gruppe pro Übungsgruppe und Tutorium erstellt; inaktive Teilnehmer werden übersprungen.
+        Es wird <strong>eine Gruppe pro Übung</strong> und <strong>eine Gruppe für jedes Tutorium</strong> erstellt; inaktive Teilnehmer werden übersprungen.
       </div>
 
       <div>
@@ -1220,7 +1220,7 @@
       audPrefixLabel: 'Gruppennamen-Präfix (optional)',
       audPreviewExLabel: 'Übungsgruppen',
       audPreviewTutLabel: 'Tutorien',
-      audHintHtml: 'Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>Es wird je eine Gruppe pro Übungsgruppe und Tutorium erstellt; inaktive Teilnehmer werden übersprungen.',
+      audHintHtml: 'Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>Es wird <strong>eine Gruppe pro Übung</strong> und <strong>eine Gruppe für jedes Tutorium</strong> erstellt; inaktive Teilnehmer werden übersprungen.',
       jsonModalTitle: 'Import / Export',
       audStatusMulti: (groupCount, members) => groupCount + ' Gruppe(n), ' + members + ' Teilnehmer',
       audApplyLabel: groupCount => groupCount + ' Gruppen importieren',
@@ -1292,7 +1292,7 @@
       audPrefixLabel: 'Group name prefix (optional)',
       audPreviewExLabel: 'Exercise groups',
       audPreviewTutLabel: 'Tutorials',
-      audHintHtml: 'Paste the contents of <code>submissions.json</code> below or load the file.<br>How to export it in AuD: <em>Submissions &rarr; All Groups</em> (with <em>include Tutorials</em> if needed).<br>One group is created per exercise group and tutorial; inactive participants are skipped.',
+      audHintHtml: 'Paste the contents of <code>submissions.json</code> below or load the file.<br>How to export it in AuD: <em>Submissions &rarr; All Groups</em> (with <em>include Tutorials</em> if needed).<br><strong>One group per exercise</strong> and <strong>one group for each tutorial</strong> is created; inactive participants are skipped.',
       jsonModalTitle: 'Import / Export',
       audStatusMulti: (groupCount, members) => groupCount + ' group' + (groupCount === 1 ? '' : 's') + ', ' + members + ' participant' + (members === 1 ? '' : 's'),
       audApplyLabel: groupCount => 'Import ' + groupCount + ' group' + (groupCount === 1 ? '' : 's'),
