@@ -33,7 +33,14 @@
 
   body {
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--bg);
+    background:
+      radial-gradient(1200px 800px at 15% -10%, hsl(28 60% 92% / .55), transparent 60%),
+      radial-gradient(1000px 700px at 110% 10%, hsl(210 70% 92% / .45), transparent 55%),
+      radial-gradient(900px 700px at 50% 110%, hsl(280 60% 94% / .4), transparent 60%),
+      var(--bg);
+    background-size: 200% 200%, 200% 200%, 200% 200%, auto;
+    background-position: 0% 0%, 100% 0%, 50% 100%, 0 0;
+    animation: ambient-drift 38s ease-in-out infinite alternate;
     color: var(--text);
     min-height: 100vh;
     display: flex;
@@ -43,6 +50,52 @@
     -webkit-font-smoothing: antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     line-height: 1.5;
+  }
+
+  @keyframes ambient-drift {
+    0%   { background-position: 0% 0%,   100% 0%, 50% 100%, 0 0; }
+    50%  { background-position: 20% 10%, 80% 20%, 60% 90%,  0 0; }
+    100% { background-position: 10% 20%, 90% 5%,  40% 100%, 0 0; }
+  }
+
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translateY(22px); filter: blur(6px); }
+    to   { opacity: 1; transform: translateY(0);     filter: blur(0); }
+  }
+
+  @keyframes reveal-left {
+    from { opacity: 0; transform: translateX(-28px); filter: blur(6px); }
+    to   { opacity: 1; transform: translateX(0);     filter: blur(0); }
+  }
+
+  @keyframes reveal-scale {
+    from { opacity: 0; transform: scale(.88);  filter: blur(8px); }
+    to   { opacity: 1; transform: scale(1);    filter: blur(0); }
+  }
+
+  @keyframes wheel-glow {
+    0%, 100% { box-shadow: var(--shadow-md), 0 0 0 1px var(--border), 0 0 0 0 hsl(28 50% 60% / 0); }
+    50%      { box-shadow: var(--shadow-md), 0 0 0 1px var(--border), 0 0 70px 6px hsl(28 60% 65% / .22); }
+  }
+
+  .panel                { animation: reveal-left 1.0s cubic-bezier(.2,.7,.2,1) both; animation-delay: .15s; }
+  .wheel-area           { animation: reveal-scale 1.2s cubic-bezier(.2,.7,.2,1) both; animation-delay: .55s; }
+  .config-header h2     { animation: reveal-up   0.9s cubic-bezier(.2,.7,.2,1) both; animation-delay: .9s; }
+  #jsonModalBtn         { animation: reveal-up   0.8s cubic-bezier(.2,.7,.2,1) both; animation-delay: 1.05s; }
+  #newGroupBtn          { animation: reveal-up   0.8s cubic-bezier(.2,.7,.2,1) both; animation-delay: 1.15s; }
+  .language-toggle      { animation: reveal-up   0.8s ease-out both;                 animation-delay: 1.3s; }
+
+  .site-footer { opacity: 0; transform: translateY(22px); filter: blur(6px); }
+  .site-footer.is-visible { animation: reveal-up 1.0s cubic-bezier(.2,.7,.2,1) both; }
+
+  canvas#canvas { animation: wheel-glow 6s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    body { animation: none; background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
+    .panel, .wheel-area, .config-header h2, #jsonModalBtn, #newGroupBtn, .language-toggle { animation: none; }
+    .site-footer { opacity: 1; transform: none; filter: none; }
+    .site-footer.is-visible { animation: none; }
+    canvas#canvas { animation: none; }
   }
 
   :focus { outline: none; }
@@ -1230,6 +1283,17 @@
 
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+  (() => {
+    const footer = document.querySelector('.site-footer');
+    if (!footer) return;
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || !('IntersectionObserver' in window)) { footer.classList.add('is-visible'); return; }
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => { if (entry.isIntersecting) { footer.classList.add('is-visible'); obs.disconnect(); } });
+    }, { threshold: 0.15 });
+    io.observe(footer);
+  })();
 </script>
 
 <script>
@@ -1271,14 +1335,14 @@
       audJsonPlaceholder: 'AUD JSON-Array einfuegen...',
       groupJsonPlaceholder: 'Glücksrad-Gruppen JSON einfuegen...',
       audModeUpdate: 'Update',
-      audModeUpdateDesc: 'Vorhandene gleichnamige Gruppen werden überschrieben, neue angelegt. Bei Tutorien bleiben die bestehenden Vorstellungen erhalten.',
+      audModeUpdateDesc: 'Vorhandene gleichnamige Gruppen werden überschrieben, neue angelegt. Bei Tutorien werden bestehende Vorstellungen nicht überschrieben.',
       audModeNew: 'Create new',
       audModeNewDesc: 'Bei Namenskonflikt wird _neu angehängt.',
       audModeHeading: 'Import-Modus',
       audPrefixLabel: 'Gruppennamen-Präfix (optional)',
       audPreviewExLabel: 'Übungsgruppen',
       audPreviewTutLabel: 'Tutorien',
-      audHintHtml: 'Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>Es wird <strong>eine Gruppe pro Übung</strong> und <strong>eine Gruppe für jedes Tutorium</strong> erstellt; inaktive Teilnehmer werden übersprungen.<br>Beim <strong>Update</strong> bleiben in <strong>Tutorien</strong> die bereits gezählten <strong>Vorstellungen</strong> der bestehenden Teilnehmer erhalten.',
+      audHintHtml: 'Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>Es wird <strong>eine Gruppe pro Übung</strong> und <strong>eine Gruppe für jedes Tutorium</strong> erstellt; inaktive Teilnehmer werden übersprungen.<br>Beim <strong>Update</strong> werden in <strong>Tutorien</strong> die bereits gezählten <strong>Vorstellungen</strong> der bestehenden Teilnehmer <strong>nicht überschrieben</strong>.',
       jsonModalTitle: 'Import / Export',
       audStatusMulti: (groupCount, members) => groupCount + ' Gruppe(n), ' + members + ' Teilnehmer',
       audApplyLabel: groupCount => groupCount + ' Gruppen importieren',
@@ -1344,14 +1408,14 @@
       audJsonPlaceholder: 'Paste AUD JSON array...',
       groupJsonPlaceholder: 'Paste wheel groups JSON...',
       audModeUpdate: 'Update',
-      audModeUpdateDesc: 'Existing groups with the same name are overwritten, new ones are created. For tutorials, existing presentation counts are preserved.',
+      audModeUpdateDesc: 'Existing groups with the same name are overwritten, new ones are created. For tutorials, existing presentation counts are not overwritten.',
       audModeNew: 'Create new',
       audModeNewDesc: 'On name conflict, _neu is appended.',
       audModeHeading: 'Import mode',
       audPrefixLabel: 'Group name prefix (optional)',
       audPreviewExLabel: 'Exercise groups',
       audPreviewTutLabel: 'Tutorials',
-      audHintHtml: 'Paste the contents of <code>submissions.json</code> below or load the file.<br>How to export it in AuD: <em>Submissions &rarr; All Groups</em> (with <em>include Tutorials</em> if needed).<br><strong>One group per exercise</strong> and <strong>one group for each tutorial</strong> is created; inactive participants are skipped.<br>On <strong>Update</strong>, existing <strong>tutorial</strong> members keep their already-counted <strong>presentations</strong>.',
+      audHintHtml: 'Paste the contents of <code>submissions.json</code> below or load the file.<br>How to export it in AuD: <em>Submissions &rarr; All Groups</em> (with <em>include Tutorials</em> if needed).<br><strong>One group per exercise</strong> and <strong>one group for each tutorial</strong> is created; inactive participants are skipped.<br>On <strong>Update</strong>, already-counted <strong>presentations</strong> of existing <strong>tutorial</strong> members are <strong>not overwritten</strong>.',
       jsonModalTitle: 'Import / Export',
       audStatusMulti: (groupCount, members) => groupCount + ' group' + (groupCount === 1 ? '' : 's') + ', ' + members + ' participant' + (members === 1 ? '' : 's'),
       audApplyLabel: groupCount => 'Import ' + groupCount + ' group' + (groupCount === 1 ? '' : 's'),
@@ -1396,7 +1460,8 @@
       date: '2026-05-30',
       items: [
         { type: 'feat', de: 'Release Notes als ausklappbarer Footer-Reiter mit Date-Versionen', en: 'Release notes as collapsible footer section with date-based versions' },
-        { type: 'feat', de: 'AuD-Update behält bei Tutorien die bestehenden Vorstellungen der Teilnehmer', en: 'AuD update preserves existing presentation counts for tutorial members' },
+        { type: 'feat', de: 'AuD-Update überschreibt Vorstellungen in Tutorien nicht', en: 'AuD update does not overwrite presentation counts in tutorials' },
+        { type: 'feat', de: 'Seitenaufbau mit gestaffeltem Einblend-Effekt und lebendigem Hintergrund', en: 'Page loads with a staged reveal animation and ambient background' },
       ],
     },
     {
@@ -2001,6 +2066,7 @@
     if (e.target.closest('#newGroupBtn') || e.target.closest('#jsonModalBtn')) return;
     configToggle.classList.toggle('open');
     configBody.classList.toggle('open');
+    if (configBody.classList.contains('open')) animateGroupCards();
   });
 
   // Render groups
@@ -2050,6 +2116,22 @@
           renderGroups();
         }
       });
+    });
+  }
+
+  function animateGroupCards() {
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+    groupsContainer.querySelectorAll('.group-card').forEach((card, i) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(12px)';
+      card.style.filter = 'blur(4px)';
+      card.style.transition = `opacity .5s ease ${i * 60}ms, transform .5s cubic-bezier(.2,.7,.2,1) ${i * 60}ms, filter .5s ease ${i * 60}ms`;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+        card.style.filter = 'blur(0)';
+      }));
     });
   }
 
@@ -2171,6 +2253,7 @@
     if (!configBody.classList.contains('open')) {
       configToggle.classList.add('open');
       configBody.classList.add('open');
+      animateGroupCards();
     }
   });
 
@@ -2533,6 +2616,7 @@
       configToggle.classList.add('open');
       configBody.classList.add('open');
     }
+    animateGroupCards();
     closeJsonModal();
   }
 
@@ -2558,10 +2642,19 @@
   // (Cloudflare Pages doesn't serve Range requests, so seeking to
   // SPIN_MUSIC_START only works once the file is fully buffered).
   getSpinMusic().load();
-  // Auto-open config if groups exist
+  // Auto-open config if groups exist; hide cards immediately so they animate in with the cascade
   if (groups.length > 0) {
     configToggle.classList.add('open');
     configBody.classList.add('open');
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+      groupsContainer.querySelectorAll('.group-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(12px)';
+        card.style.filter = 'blur(4px)';
+      });
+      setTimeout(animateGroupCards, 1350);
+    }
   }
 })();
 </script>
