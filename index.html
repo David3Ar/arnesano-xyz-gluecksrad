@@ -930,6 +930,57 @@
   .site-footer .legal-body p + p { margin-top: 6px; }
   .site-footer .legal-body a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
 
+  .site-footer .footer-version {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .site-footer .release-list { display: flex; flex-direction: column; gap: 14px; }
+  .site-footer .release-version { display: flex; flex-direction: column; gap: 6px; }
+  .site-footer .release-version-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .site-footer .release-version-tag {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    padding: 2px 6px;
+    background: var(--border);
+    color: var(--text);
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .site-footer .release-version-date { font-size: 11px; color: var(--text-secondary); font-weight: 400; }
+  .site-footer .release-version ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+  .site-footer .release-version li { display: flex; gap: 8px; }
+  .site-footer .release-version li::before {
+    content: '';
+    flex: 0 0 4px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+    margin-top: 7px;
+  }
+  .site-footer .release-tag {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 6px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+  .site-footer .release-tag.feat { background: rgba(34,197,94,.15); color: #16a34a; }
+  .site-footer .release-tag.fix { background: rgba(239,68,68,.15); color: #dc2626; }
+  .site-footer .release-tag.docs { background: rgba(59,130,246,.15); color: #2563eb; }
+
   .language-toggle {
     position: fixed;
     right: 16px;
@@ -1137,7 +1188,7 @@
 <!-- Footer: Impressum & Datenschutz -->
 <footer class="site-footer">
   <div class="footer-meta">
-    <div>&copy; <span id="footerYear"></span> Davide Arnesano &middot; <span id="footerAppName">Glücksrad</span></div>
+    <div>&copy; <span id="footerYear"></span> Davide Arnesano &middot; <span id="footerAppName">Glücksrad</span> &middot; <span id="footerVersion" class="footer-version"></span></div>
     <div class="legal-links">
       <a id="footerContact" href="mailto:impressum@arnesano.xyz" style="color:inherit;text-decoration:none;">Kontakt</a>
     </div>
@@ -1166,6 +1217,13 @@
       <p><strong>Cookies / Tracking.</strong> Diese Seite setzt keine Cookies, lädt keine externen Schriften (Google Fonts o.ä.), keine Analyse-Tools und keine externen Skripte.</p>
       <p><strong>Hosting.</strong> Die Seite wird bei Cloudflare gehostet. Beim Aufruf werden technisch erforderliche Daten (insb. IP-Adresse, Datum/Uhrzeit, User-Agent) durch den Hoster verarbeitet, um die Seite ausliefern und die Sicherheit gewährleisten zu können (Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO). Weitere Informationen: <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy Policy</a>.</p>
       <p><strong>Deine Rechte.</strong> Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung sowie Widerspruch und Datenübertragbarkeit. Anfragen bitte an <a href="mailto:impressum@arnesano.xyz">impressum@arnesano.xyz</a>.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary id="releaseNotesSummary">Release Notes</summary>
+    <div class="legal-body">
+      <div class="release-list" id="releaseList"></div>
     </div>
   </details>
 </footer>
@@ -1213,14 +1271,14 @@
       audJsonPlaceholder: 'AUD JSON-Array einfuegen...',
       groupJsonPlaceholder: 'Glücksrad-Gruppen JSON einfuegen...',
       audModeUpdate: 'Update',
-      audModeUpdateDesc: 'Vorhandene gleichnamige Gruppen werden überschrieben, neue angelegt.',
+      audModeUpdateDesc: 'Vorhandene gleichnamige Gruppen werden überschrieben, neue angelegt. Bei Tutorien bleiben die bestehenden Vorstellungen erhalten.',
       audModeNew: 'Create new',
       audModeNewDesc: 'Bei Namenskonflikt wird _neu angehängt.',
       audModeHeading: 'Import-Modus',
       audPrefixLabel: 'Gruppennamen-Präfix (optional)',
       audPreviewExLabel: 'Übungsgruppen',
       audPreviewTutLabel: 'Tutorien',
-      audHintHtml: 'Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>Es wird <strong>eine Gruppe pro Übung</strong> und <strong>eine Gruppe für jedes Tutorium</strong> erstellt; inaktive Teilnehmer werden übersprungen.',
+      audHintHtml: 'Füge den Inhalt von <code>submissions.json</code> unten ein oder lade die Datei.<br>So exportierst du sie in AuD: <em>Submissions &rarr; All Groups</em> (mit <em>include Tutorials</em>, falls gewünscht).<br>Es wird <strong>eine Gruppe pro Übung</strong> und <strong>eine Gruppe für jedes Tutorium</strong> erstellt; inaktive Teilnehmer werden übersprungen.<br>Beim <strong>Update</strong> bleiben in <strong>Tutorien</strong> die bereits gezählten <strong>Vorstellungen</strong> der bestehenden Teilnehmer erhalten.',
       jsonModalTitle: 'Import / Export',
       audStatusMulti: (groupCount, members) => groupCount + ' Gruppe(n), ' + members + ' Teilnehmer',
       audApplyLabel: groupCount => groupCount + ' Gruppen importieren',
@@ -1255,6 +1313,7 @@
       contact: 'Kontakt',
       legalNotice: 'Impressum',
       privacyPolicy: 'Datenschutzerklärung',
+      releaseNotes: 'Release Notes',
     },
     en: {
       pageTitle: 'Wheel of Names',
@@ -1285,14 +1344,14 @@
       audJsonPlaceholder: 'Paste AUD JSON array...',
       groupJsonPlaceholder: 'Paste wheel groups JSON...',
       audModeUpdate: 'Update',
-      audModeUpdateDesc: 'Existing groups with the same name are overwritten, new ones are created.',
+      audModeUpdateDesc: 'Existing groups with the same name are overwritten, new ones are created. For tutorials, existing presentation counts are preserved.',
       audModeNew: 'Create new',
       audModeNewDesc: 'On name conflict, _neu is appended.',
       audModeHeading: 'Import mode',
       audPrefixLabel: 'Group name prefix (optional)',
       audPreviewExLabel: 'Exercise groups',
       audPreviewTutLabel: 'Tutorials',
-      audHintHtml: 'Paste the contents of <code>submissions.json</code> below or load the file.<br>How to export it in AuD: <em>Submissions &rarr; All Groups</em> (with <em>include Tutorials</em> if needed).<br><strong>One group per exercise</strong> and <strong>one group for each tutorial</strong> is created; inactive participants are skipped.',
+      audHintHtml: 'Paste the contents of <code>submissions.json</code> below or load the file.<br>How to export it in AuD: <em>Submissions &rarr; All Groups</em> (with <em>include Tutorials</em> if needed).<br><strong>One group per exercise</strong> and <strong>one group for each tutorial</strong> is created; inactive participants are skipped.<br>On <strong>Update</strong>, existing <strong>tutorial</strong> members keep their already-counted <strong>presentations</strong>.',
       jsonModalTitle: 'Import / Export',
       audStatusMulti: (groupCount, members) => groupCount + ' group' + (groupCount === 1 ? '' : 's') + ', ' + members + ' participant' + (members === 1 ? '' : 's'),
       audApplyLabel: groupCount => 'Import ' + groupCount + ' group' + (groupCount === 1 ? '' : 's'),
@@ -1327,8 +1386,37 @@
       contact: 'Contact',
       legalNotice: 'Legal notice',
       privacyPolicy: 'Privacy policy',
+      releaseNotes: 'Release notes',
     },
   };
+
+  const RELEASES = [
+    {
+      version: 'v2026.05.30',
+      date: '2026-05-30',
+      items: [
+        { type: 'feat', de: 'Release Notes als ausklappbarer Footer-Reiter mit Date-Versionen', en: 'Release notes as collapsible footer section with date-based versions' },
+        { type: 'feat', de: 'AuD-Update behält bei Tutorien die bestehenden Vorstellungen der Teilnehmer', en: 'AuD update preserves existing presentation counts for tutorial members' },
+      ],
+    },
+    {
+      version: 'v2026.05.28',
+      date: '2026-05-28',
+      items: [
+        { type: 'feat', de: 'AuD-Import unterstützt mehrere Gruppen mit Update- und Neuanlage-Modus', en: 'AuD import supports multiple groups with update and create modes' },
+        { type: 'feat', de: 'Hinweistext zum AuD-Import zeigt Gruppenaufschlüsselung in Fett', en: 'AuD import hint shows group breakdown in bold' },
+        { type: 'feat', de: 'Lizenzierter Musik-Track ersetzt den Synth-Jingle beim Spin', en: 'Licensed music track replaces the synth jingle on spin' },
+        { type: 'fix', de: 'Seite scrollt nicht mehr beim Halten der Leertaste zum Spinnen', en: 'Page no longer scrolls when holding space to spin' },
+      ],
+    },
+    {
+      version: 'v2026.05.13',
+      date: '2026-05-13',
+      items: [
+        { type: 'feat', de: 'Erstveröffentlichung: Glücksrad mit Gruppen, gewichteten Teilnehmern und JSON-Import/Export', en: 'Initial release: wheel with groups, weighted participants, and JSON import/export' },
+      ],
+    },
+  ];
 
   const LANG_STORAGE_KEY = 'gluecksrad_language';
   let currentLang = localStorage.getItem(LANG_STORAGE_KEY) || 'de';
@@ -1369,6 +1457,28 @@
   const footerContact = document.getElementById('footerContact');
   const legalSummary = document.getElementById('legalSummary');
   const privacySummary = document.getElementById('privacySummary');
+  const releaseNotesSummary = document.getElementById('releaseNotesSummary');
+  const releaseList = document.getElementById('releaseList');
+  const footerVersion = document.getElementById('footerVersion');
+  if (footerVersion && RELEASES.length > 0) footerVersion.textContent = RELEASES[0].version;
+
+  function renderReleases() {
+    const locale = currentLang === 'de' ? 'de-DE' : 'en-US';
+    releaseList.innerHTML = RELEASES.map(rel => {
+      const dateLabel = new Date(rel.date).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+      const items = rel.items.map(it => {
+        const text = it[currentLang] || it.de;
+        return '<li><span><span class="release-tag ' + it.type + '">' + it.type + '</span>' + text + '</span></li>';
+      }).join('');
+      return '<div class="release-version">' +
+        '<div class="release-version-head">' +
+          '<span class="release-version-tag">' + rel.version + '</span>' +
+          '<span class="release-version-date">' + dateLabel + '</span>' +
+        '</div>' +
+        '<ul>' + items + '</ul>' +
+      '</div>';
+    }).join('');
+  }
   const participantsTitle = document.getElementById('participantsTitle');
   const spinHint = document.getElementById('spinHint');
   const savedGroupsTitle = document.getElementById('savedGroupsTitle');
@@ -2105,6 +2215,8 @@
     footerContact.textContent = t('contact');
     legalSummary.textContent = t('legalNotice');
     privacySummary.textContent = t('privacyPolicy');
+    releaseNotesSummary.textContent = t('releaseNotes');
+    renderReleases();
 
     participantsTitle.textContent = t('participants');
     nameInput.placeholder = t('namePlaceholder');
@@ -2391,7 +2503,12 @@
         const existing = groups.find(g => g.name === targetName);
         if (existing) {
           existing.description = desc;
-          existing.members = incoming.members.map(m => ({ name: m.name, weight: m.weight }));
+          if (incoming.kind === 'tutorial') {
+            const prevWeights = new Map(existing.members.map(m => [m.name, m.weight]));
+            existing.members = incoming.members.map(m => ({ name: m.name, weight: prevWeights.get(m.name) ?? 0 }));
+          } else {
+            existing.members = incoming.members.map(m => ({ name: m.name, weight: m.weight }));
+          }
         } else {
           groups.push({ id: makeGroupId(), name: targetName, description: desc, members: incoming.members.map(m => ({ ...m })) });
         }
@@ -2437,6 +2554,10 @@
 
   // Init
   applyLanguage();
+  // Preload spin music early so it's buffered before the first spin
+  // (Cloudflare Pages doesn't serve Range requests, so seeking to
+  // SPIN_MUSIC_START only works once the file is fully buffered).
+  getSpinMusic().load();
   // Auto-open config if groups exist
   if (groups.length > 0) {
     configToggle.classList.add('open');
