@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -1248,7 +1248,9 @@
   </div>
 
   <div class="footer-credits" style="margin-top:8px;font-size:12px;color:var(--text-secondary);">
-    Music by <a href="https://pixabay.com/users/magpiemusic-40918098/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=513687" target="_blank" rel="noopener">Yevgeniy Sorokin</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=513687" target="_blank" rel="noopener">Pixabay</a>
+    Music by <a href="https://pixabay.com/users/magpiemusic-40918098/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=513687" target="_blank" rel="noopener">Yevgeniy Sorokin</a> &amp;
+    <a href="https://pixabay.com/users/scottishperson-46954745/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=333245" target="_blank" rel="noopener">scottishperson</a>
+    from <a href="https://pixabay.com/music/" target="_blank" rel="noopener">Pixabay</a>
   </div>
 
   <details>
@@ -1455,6 +1457,17 @@
   };
 
   const RELEASES = [
+    {
+      version: 'v2026.05.31',
+      date: '2026-05-31',
+      items: [
+        { type: 'feat', de: 'Mehrere Spin-Songs und Gratulations-Sounds, zufällig pro Runde gewählt', en: 'Multiple spin songs and congrats sounds, randomly picked each round' },
+        { type: 'feat', de: 'Neue Audio-Dateien im audio/-Ordner werden beim Commit automatisch eingebunden', en: 'New audio files in the audio/ folder are wired in automatically on commit' },
+        { type: 'feat', de: 'Sanfteres Ausblenden der Musik beim Gewinner, Gratulation kommt klarer durch', en: 'Smoother music fade-out on winner reveal so the cheer comes through clearly' },
+        { type: 'feat', de: 'Spin-Dauer auf ~4–7 Sekunden verkürzt', en: 'Spin duration shortened to ~4–7 seconds' },
+        { type: 'fix', de: 'Musik wurde nach mehreren Runden zu früh ausgeblendet', en: 'Music no longer fades out prematurely after several spins' },
+      ],
+    },
     {
       version: 'v2026.05.30',
       date: '2026-05-30',
@@ -1724,20 +1737,82 @@
     osc.stop(start + duration);
   }
 
-  // Spin music — Pixabay track (Yevgeniy Sorokin – Action Trailer Promo Rock)
-  const SPIN_MUSIC_START = 55.5;
+  // Track lists below are kept in sync with the audio/ folder by .githooks/pre-commit.
+  // To add or remove tracks: drop files into audio/ or audio/cheer/ and commit.
+  // AUTO-GENERATED:SPIN_TRACKS_START
+  const SPIN_TRACK_LIST = [
+    { src: 'audio/floraphonic-you-win-sequence-2-183949.mp3', start: 0 },
+    { src: 'audio/magpiemusic-action-trailer-promo-rock-513687.mp3', start: 55.5 },
+    { src: 'audio/scottishperson-sound-effect-happy-birthday-music-box-333245.mp3', start: 0 },
+  ];
+  // AUTO-GENERATED:SPIN_TRACKS_END
+  // AUTO-GENERATED:CHEER_TRACKS_START
+  const CHEER_TRACKS_DYNAMIC = [
+    'audio/cheer/mrstokes302-congratulations-sfx-mrstokes302-442129 (1).mp3',
+    'audio/cheer/voicebosch-congratulations-deep-voice-172193.mp3',
+    'audio/cheer/yoursperfectguy-congratulations-message-notification-sound-sfx-1-334724.mp3',
+    'audio/cheer/yoursperfectguy-sci-fi-congratulations-message-notification-sound-sfx-334728.mp3',
+  ];
+  // AUTO-GENERATED:CHEER_TRACKS_END
+  // Currently active track (set when a spin round begins)
+  let SPIN_TRACK = SPIN_TRACK_LIST[0];
+
   const SPIN_MUSIC_TARGET_VOL = 0.75;
   const SPIN_MUSIC_START_VOL = 0.675; // max 10% softer than target
   const SPIN_MUSIC_FADE_IN_MS = 1500;
   const SPIN_MUSIC_FADE_OUT_MS = 2200;
+  // Cache: each Audio object is created/loaded at most once per src
+  const spinAudioCache = new Map();
+  const cheerAudioCache = new Map();
   let spinMusic = null;
   let spinMusicFadeId = null;
-  function getSpinMusic() {
-    if (!spinMusic) {
-      spinMusic = new Audio('magpiemusic-action-trailer-promo-rock-513687.mp3');
-      spinMusic.preload = 'auto';
+
+  function loadSpinAudio(track) {
+    let a = spinAudioCache.get(track.src);
+    if (!a) {
+      a = new Audio(track.src);
+      a.preload = 'auto';
+      a.load();
+      spinAudioCache.set(track.src, a);
     }
-    return spinMusic;
+    return a;
+  }
+  function loadCheerAudio(src) {
+    let a = cheerAudioCache.get(src);
+    if (!a) {
+      a = new Audio(src);
+      a.preload = 'auto';
+      a.load();
+      cheerAudioCache.set(src, a);
+    }
+    return a;
+  }
+  function pickRandomSpinSlot() {
+    const track = SPIN_TRACK_LIST[Math.floor(Math.random() * SPIN_TRACK_LIST.length)];
+    return { track, audio: loadSpinAudio(track) };
+  }
+  function pickRandomCheerSlot() {
+    const src = CHEER_TRACKS_DYNAMIC[Math.floor(Math.random() * CHEER_TRACKS_DYNAMIC.length)];
+    return { src, audio: loadCheerAudio(src) };
+  }
+
+  // Two-deep queue: slot1 for the upcoming spin, slot2 for the one after that.
+  // After each spin starts we shift the queue and refill slot2 in the background.
+  let spinSlot1  = pickRandomSpinSlot();
+  let spinSlot2  = pickRandomSpinSlot();
+  let cheerSlot1 = pickRandomCheerSlot();
+  let cheerSlot2 = pickRandomCheerSlot();
+  let currentSpinSlot  = null;  // active during a spin round
+  let currentCheerSlot = null;
+
+  function advanceAudioQueue() {
+    currentSpinSlot  = spinSlot1;
+    currentCheerSlot = cheerSlot1;
+    SPIN_TRACK = currentSpinSlot.track;
+    spinSlot1  = spinSlot2;
+    cheerSlot1 = cheerSlot2;
+    spinSlot2  = pickRandomSpinSlot();
+    cheerSlot2 = pickRandomCheerSlot();
   }
   function fadeSpinMusic(targetVol, durationMs, onDone) {
     if (!spinMusic) return;
@@ -1758,9 +1833,12 @@
     }, 30);
   }
   function playIceCreamTruck() {
-    const a = getSpinMusic();
+    clearWinnerTimers();
+    advanceAudioQueue();
+    const a = currentSpinSlot.audio;
+    spinMusic = a;
     if (spinMusicFadeId) { clearInterval(spinMusicFadeId); spinMusicFadeId = null; }
-    try { a.currentTime = SPIN_MUSIC_START; } catch (_) {}
+    try { a.currentTime = currentSpinSlot.track.start; } catch (_) {}
     a.volume = SPIN_MUSIC_START_VOL;
     a.play().then(() => {
       fadeSpinMusic(SPIN_MUSIC_TARGET_VOL, SPIN_MUSIC_FADE_IN_MS);
@@ -1771,25 +1849,16 @@
     const a = spinMusic;
     fadeSpinMusic(0, SPIN_MUSIC_FADE_OUT_MS + extraFadeMs, () => {
       a.pause();
-      try { a.currentTime = SPIN_MUSIC_START; } catch (_) {}
+      try { a.currentTime = (currentSpinSlot ? currentSpinSlot.track.start : SPIN_TRACK.start); } catch (_) {}
     });
   }
 
-  // Winner fanfare
-  function playFanfare() {
-    const ctx = getAudio();
-    const t = ctx.currentTime;
-    const notes = [
-      [523, 0.15], [659, 0.15], [784, 0.15], [1047, 0.45],
-      [784, 0.15], [1047, 0.6],
-    ];
-    let offset = 0;
-    for (const [freq, dur] of notes) {
-      playNote(ctx, freq, t + offset, dur + 0.1, 0.14, 'triangle');
-      playNote(ctx, freq * 0.5, t + offset, dur + 0.1, 0.06, 'sine');
-      playNote(ctx, freq * 1.5, t + offset, dur + 0.08, 0.04, 'sine');
-      offset += dur;
-    }
+  function playCheer() {
+    if (!currentCheerSlot) return;
+    const a = currentCheerSlot.audio;
+    try { a.currentTime = 0; } catch (_) {}
+    a.volume = 1.0;
+    a.play().catch(() => {});
   }
 
   // Tick sound while spinning — volume scales with speed
@@ -1855,7 +1924,7 @@
     playIceCreamTruck();
     startTickSound();
     let speed = initialSpeed;
-    const friction = 0.988 + Math.random() * 0.008;
+    const friction = 0.978 + Math.random() * 0.007;
     // Random micro-bumps during spin
     const bumpChance = 0.02 + Math.random() * 0.03;
     const bumpStrength = 0.003 + Math.random() * 0.005;
@@ -1898,24 +1967,38 @@
   }
 
   let autoStopMusicTimer = null;
+  let winnerTimers = [];
+  function clearWinnerTimers() {
+    winnerTimers.forEach(id => clearTimeout(id));
+    winnerTimers = [];
+  }
   function showWinner() {
     const winner = getWinner();
     resultInline.textContent = t('winnerInline', winner.name);
     winnerNameEl.textContent = winner.name;
     overlay.classList.add('visible');
-    playFanfare();
     launchConfetti();
     if (autoStopMusicTimer) clearTimeout(autoStopMusicTimer);
-    autoStopMusicTimer = setTimeout(() => {
-      autoStopMusicTimer = null;
-      stopSpinMusic(1000);
-    }, 5000);
+    autoStopMusicTimer = null;
+    clearWinnerTimers();
+    // Music: slow fade to ~40% over 1.5s, hold for 5s, then fade out over 2s.
+    // Cheer comes in ~500ms after the music starts ducking.
+    winnerTimers.push(setTimeout(playCheer, 500));
+    fadeSpinMusic(0.30, 1500, () => {
+      winnerTimers.push(setTimeout(() => fadeSpinMusic(0, 2000, () => {
+        if (spinMusic) {
+          spinMusic.pause();
+          try { spinMusic.currentTime = (currentSpinSlot ? currentSpinSlot.track.start : 0); } catch (_) {}
+        }
+      }), 5000));
+    });
   }
 
   function hideOverlay() {
     overlay.classList.remove('visible');
     stopConfetti();
     if (autoStopMusicTimer) { clearTimeout(autoStopMusicTimer); autoStopMusicTimer = null; }
+    clearWinnerTimers();
     stopSpinMusic();
   }
 
@@ -2638,10 +2721,7 @@
 
   // Init
   applyLanguage();
-  // Preload spin music early so it's buffered before the first spin
-  // (Cloudflare Pages doesn't serve Range requests, so seeking to
-  // SPIN_MUSIC_START only works once the file is fully buffered).
-  getSpinMusic().load();
+  // Spin music is preloaded inside the fetch().finally() above after the track is chosen.
   // Auto-open config if groups exist; hide cards immediately so they animate in with the cascade
   if (groups.length > 0) {
     configToggle.classList.add('open');

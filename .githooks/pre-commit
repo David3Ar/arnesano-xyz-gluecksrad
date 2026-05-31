@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+// Auto-syncs the SPIN_TRACK_LIST and CHEER_TRACKS_DYNAMIC arrays in index.html
+// with the contents of audio/ and audio/cheer/.
+// Spin tracks: existing "start" values are preserved, new files default to 0.
+
+const fs   = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const root      = path.resolve(__dirname, '..');
+const audioDir  = path.join(root, 'audio');
+const cheerDir  = path.join(audioDir, 'cheer');
+const indexPath = path.join(root, 'index.html');
+
+let html = fs.readFileSync(indexPath, 'utf8');
+
+// Parse existing spin starts so we don't reset them on every commit
+const spinMatch = html.match(/AUTO-GENERATED:SPIN_TRACKS_START[\s\S]*?AUTO-GENERATED:SPIN_TRACKS_END/);
+const knownStarts = new Map();
+if (spinMatch) {
+  const re = /\{\s*src:\s*'([^']+)'\s*,\s*start:\s*([\d.]+)/g;
+  let m;
+  while ((m = re.exec(spinMatch[0]))) {
+    knownStarts.set(path.basename(m[1]), parseFloat(m[2]));
+  }
+}
+
+// Scan directories
+const spinFiles = fs.existsSync(audioDir)
+  ? fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3')).sort()
+  : [];
+const cheerFiles = fs.existsSync(cheerDir)
+  ? fs.readdirSync(cheerDir).filter(f => f.endsWith('.mp3')).sort()
+  : [];
+
+// Render new array bodies
+const spinBody = spinFiles.map(f => {
+  const start = knownStarts.has(f) ? knownStarts.get(f) : 0;
+  return `    { src: 'audio/${f}', start: ${start} },`;
+}).join('\n');
+
+const cheerBody = cheerFiles.map(f => `    'audio/cheer/${f}',`).join('\n');
+
+// Replace marked blocks
+function replaceBlock(src, startMarker, endMarker, body) {
+  const re = new RegExp(`(// AUTO-GENERATED:${startMarker})[\\s\\S]*?(// AUTO-GENERATED:${endMarker})`);
+  const replacement = `$1\n  const ${startMarker === 'SPIN_TRACKS_START' ? 'SPIN_TRACK_LIST' : 'CHEER_TRACKS_DYNAMIC'} = [\n${body}\n  ];\n  $2`;
+  return src.replace(re, replacement);
+}
+
+const updated = replaceBlock(
+  replaceBlock(html, 'SPIN_TRACKS_START', 'SPIN_TRACKS_END', spinBody),
+  'CHEER_TRACKS_START', 'CHEER_TRACKS_END', cheerBody
+);
+
+if (updated !== html) {
+  fs.writeFileSync(indexPath, updated);
+  execSync('git add index.html', { cwd: root });
+}
+
+process.exit(0);
