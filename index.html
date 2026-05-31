@@ -1462,10 +1462,6 @@
       date: '2026-05-31',
       items: [
         { type: 'feat', de: 'Mehrere Spin-Songs und Gratulations-Sounds, zufällig pro Runde gewählt', en: 'Multiple spin songs and congrats sounds, randomly picked each round' },
-        { type: 'feat', de: 'Neue Audio-Dateien im audio/-Ordner werden beim Commit automatisch eingebunden', en: 'New audio files in the audio/ folder are wired in automatically on commit' },
-        { type: 'feat', de: 'Sanfteres Ausblenden der Musik beim Gewinner, Gratulation kommt klarer durch', en: 'Smoother music fade-out on winner reveal so the cheer comes through clearly' },
-        { type: 'feat', de: 'Spin-Dauer auf ~4–7 Sekunden verkürzt', en: 'Spin duration shortened to ~4–7 seconds' },
-        { type: 'fix', de: 'Musik wurde nach mehreren Runden zu früh ausgeblendet', en: 'Music no longer fades out prematurely after several spins' },
       ],
     },
     {
@@ -1924,7 +1920,7 @@
     playIceCreamTruck();
     startTickSound();
     let speed = initialSpeed;
-    const friction = 0.978 + Math.random() * 0.007;
+    const friction = 0.988 + Math.random() * 0.008;
     // Random micro-bumps during spin
     const bumpChance = 0.02 + Math.random() * 0.03;
     const bumpStrength = 0.003 + Math.random() * 0.005;
@@ -1936,9 +1932,9 @@
       }
       rotation += speed;
       speed *= friction;
-      // Accelerate slowdown in the final phase with random variance
-      if (speed < 0.03) speed *= 0.975 + Math.random() * 0.01;
-      if (speed < 0.01) speed *= 0.955 + Math.random() * 0.01;
+      // Ball-bearing feel: barely any extra friction in the final phase
+      if (speed < 0.03) speed *= 0.992 + Math.random() * 0.005;
+      if (speed < 0.01) speed *= 0.982 + Math.random() * 0.008;
       currentSpeed = speed;
       drawWheel();
 
