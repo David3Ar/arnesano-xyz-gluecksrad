@@ -46,7 +46,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 48px 24px 0;
+    padding: 0 24px;
     -webkit-font-smoothing: antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     line-height: 1.5;
@@ -102,6 +102,35 @@
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+  }
+
+  .site-header {
+    width: 100%;
+    max-width: 880px;
+    min-height: 96px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .site-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -.025em;
+    text-decoration: none;
+  }
+
+  .site-brand img { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; }
+  .site-brand-suffix { color: var(--text-secondary); font-weight: 400; }
+
+  @media (max-width: 720px) {
+    .site-header { min-height: 80px; margin-bottom: 24px; }
+    .site-brand { font-size: 1rem; }
   }
 
   .app {
@@ -1095,6 +1124,13 @@
 </head>
 <body>
 
+<header class="site-header">
+  <a class="site-brand" href="https://arnesano.xyz" aria-label="arnesano.xyz">
+    <img src="assets/davide-arnesano-avatar.png" alt="" width="36" height="36">
+    <span>arnesano<span class="site-brand-suffix"> / gluecksrad</span></span>
+  </a>
+</header>
+
 <button class="language-toggle" id="languageToggle" type="button" title="Sprache wechseln">
   <span id="langDe">DE</span>
   <span class="divider" aria-hidden="true"></span>
@@ -1457,6 +1493,13 @@
   };
 
   const RELEASES = [
+    {
+      version: 'v2026.09.20',
+      date: '2026-09-20',
+      items: [
+        { type: 'feat', de: 'Neuer Header mit Profilbild, arnesano / gluecksrad und Link zur Homepage', en: 'New header with profile image, arnesano / gluecksrad and homepage link' },
+      ],
+    },
     {
       version: 'v2026.05.31',
       date: '2026-05-31',
