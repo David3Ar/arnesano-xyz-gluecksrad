@@ -25,6 +25,19 @@ python3 -m http.server 8000
 
 Or just open `index.html` directly in a browser.
 
+## Deployment
+
+Cloudflare Workers Builds deploys `main` to Worker `gluecksrad` automatically.
+`wrangler.jsonc` declares the Worker and asset directory. `.assetsignore` allows
+only `index.html`, `assets/` and `audio/`; repository metadata and build files
+must never be uploaded. The existing dashboard command remains compatible:
+`npx wrangler deploy --assets=. --compatibility-date=2026-05-12`.
+
+On 2026-09-20 the owner replaced the invalid build credential with
+`gluecksrad build token`. To recover a deleted or rotated credential, select its
+replacement in Worker Settings → Builds → API token, save and retry the build.
+Do not store token values in this repository.
+
 ## Tech
 
 Vanilla HTML, CSS, and JavaScript. No frameworks, no bundler, no `package.json` — the whole app is a single file.

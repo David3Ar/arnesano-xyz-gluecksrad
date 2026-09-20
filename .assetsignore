@@ -1,0 +1,5 @@
+# Publish only the app and its local media.
+/*
+!/index.html
+!/assets/
+!/audio/
