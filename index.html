@@ -540,7 +540,7 @@
     max-width: 880px;
     margin-top: 48px;
     border-top: 1px solid var(--border);
-    padding: 24px 0 32px;
+    padding: 24px 0 calc(90px + env(safe-area-inset-bottom));
   }
 
   .config-header {
@@ -962,7 +962,7 @@
     width: 100%;
     max-width: 880px;
     margin-top: auto;
-    padding: 24px 0 32px;
+    padding: 24px 0 calc(90px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--border);
     color: var(--text-secondary);
     font-size: 12px;
@@ -1065,38 +1065,39 @@
 
   .language-toggle {
     position: fixed;
-    right: 16px;
-    bottom: 16px;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
     z-index: 90;
-    height: 34px;
-    padding: 0 10px;
-    border: 1px solid var(--border);
-    border-radius: calc(var(--radius) - 2px);
-    background: var(--surface);
-    color: var(--text-secondary);
-    box-shadow: var(--shadow-md);
     display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font: 700 12px/1 inherit;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface), transparent 12%);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(16px);
+  }
+
+  .language-toggle button {
+    width: 44px;
+    min-height: 44px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
     cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 750;
   }
 
-  .language-toggle span {
-    min-width: 22px;
-    text-align: center;
+  .language-toggle button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-foreground);
+    box-shadow: var(--shadow-sm);
   }
 
-  .language-toggle .active {
-    color: var(--text);
-  }
-
-  .language-toggle .divider {
-    width: 1px;
-    height: 14px;
-    min-width: 1px;
-    background: var(--border);
-  }
+  .language-toggle button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
   .footer-meta {
     display: flex;
@@ -1131,11 +1132,10 @@
   </a>
 </header>
 
-<button class="language-toggle" id="languageToggle" type="button" title="Sprache wechseln">
-  <span id="langDe">DE</span>
-  <span class="divider" aria-hidden="true"></span>
-  <span id="langEn">EN</span>
-</button>
+<div class="language-toggle" id="languageToggle" role="group" aria-label="Sprachauswahl">
+  <button id="langDe" type="button" lang="de" aria-label="Deutsch" aria-pressed="true">DE</button>
+  <button id="langEn" type="button" lang="en" aria-label="English" aria-pressed="false">EN</button>
+</div>
 
 <div class="app">
   <div class="panel">
@@ -1346,7 +1346,7 @@
   const I18N = {
     de: {
       pageTitle: 'Glücksrad',
-      switchLanguage: 'Sprache wechseln',
+      languageSelection: 'Sprachauswahl',
       participants: 'Teilnehmer',
       namePlaceholder: 'Name',
       weightPlaceholder: 'Vortr.',
@@ -1419,7 +1419,7 @@
     },
     en: {
       pageTitle: 'Wheel of Names',
-      switchLanguage: 'Switch language',
+      languageSelection: 'Language selection',
       participants: 'Participants',
       namePlaceholder: 'Name',
       weightPlaceholder: 'Pres.',
@@ -1498,6 +1498,7 @@
       date: '2026-09-20',
       items: [
         { type: 'feat', de: 'Neuer Header mit Profilbild, arnesano / gluecksrad und Link zur Homepage', en: 'New header with profile image, arnesano / gluecksrad and homepage link' },
+        { type: 'feat', de: 'DE/EN-Sprachauswahl im gemeinsamen Seitendesign mit direkt wählbaren Sprachen', en: 'DE/EN language picker in the shared site design with direct language selection' },
       ],
     },
     {
@@ -2413,9 +2414,7 @@
   function applyLanguage() {
     document.documentElement.lang = currentLang;
     document.title = t('pageTitle');
-    languageToggle.title = t('switchLanguage');
-    langDe.classList.toggle('active', currentLang === 'de');
-    langEn.classList.toggle('active', currentLang === 'en');
+    updateLanguageControl();
     footerAppName.textContent = t('pageTitle');
     footerContact.textContent = t('contact');
     legalSummary.textContent = t('legalNotice');
@@ -2468,11 +2467,28 @@
     renderGroups();
   }
 
-  languageToggle.addEventListener('click', () => {
-    currentLang = currentLang === 'de' ? 'en' : 'de';
-    localStorage.setItem(LANG_STORAGE_KEY, currentLang);
+  function updateLanguageControl() {
+    languageToggle.setAttribute('aria-label', t('languageSelection'));
+    langDe.setAttribute('aria-pressed', String(currentLang === 'de'));
+    langEn.setAttribute('aria-pressed', String(currentLang === 'en'));
+  }
+
+  function selectLanguage(language) {
+    if (currentLang === language) return;
+    currentLang = language;
+    try { localStorage.setItem(LANG_STORAGE_KEY, currentLang); }
+    catch { /* Keep switching usable when storage is unavailable. */ }
     applyLanguage();
-  });
+  }
+
+  function guardLanguageKeys(event) {
+    if (event.code === 'Space') event.stopPropagation();
+  }
+
+  langDe.addEventListener('click', () => selectLanguage('de'));
+  langEn.addEventListener('click', () => selectLanguage('en'));
+  languageToggle.addEventListener('keydown', guardLanguageKeys);
+  languageToggle.addEventListener('keyup', guardLanguageKeys);
 
   function openJsonModal() {
     setJsonMode(false, true);

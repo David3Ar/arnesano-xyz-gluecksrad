@@ -12,7 +12,7 @@ A minimalist, weighted wheel of names that lives in a single HTML file.
 - **Saved groups** — manage recurring rosters without re-entering names every time.
 - **JSON import / export** — round-trip your groups as JSON.
 - **AuD-Platform integration** — paste a JSON array exported from the AuD platform to spin up an exercise group in one click. Names are taken from `_firstname` / `_lastname`, and the `presented` counter can optionally be carried over as the entry weight so students who have already presented less often come up more often.
-- **Bilingual UI** — toggle between German and English.
+- **Bilingual UI** — choose German or English directly in the shared pill-shaped language picker. The active language is labelled accessibly and remembered locally; keyboard selection does not trigger the wheel.
 - **Zero dependencies** — one `index.html` plus local media assets, no build step, no tracking, no backend. State lives in `localStorage`.
 
 ## Running locally
